@@ -28,9 +28,12 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-export const WP_USER = env.WP_USER || 'Manuel Lopez';
-export const WP_APP_PASS = env.WP_APP_PASS || '';
-export const DEEPSEEK_API_KEY = env.DEEPSEEK_API_KEY || '';
-export const ADMIN_PASSWORD = env.ADMIN_PASSWORD || 'Manuel1214$';
-export const WP_API_URL = env.WP_API_URL || 'https://golazos.co/wp-json/wp/v2';
+export const WP_USER = process.env.WP_USER || env.WP_USER || 'Manuel Lopez';
+export const WP_APP_PASS = process.env.WP_APP_PASS || env.WP_APP_PASS || '';
+export const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || env.DEEPSEEK_API_KEY || '';
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || env.ADMIN_PASSWORD || 'Manuel1214$';
+export const WP_API_URL = process.env.WP_API_URL || env.WP_API_URL || 'https://golazos.co/wp-json/wp/v2';
+export const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || env.UNSPLASH_ACCESS_KEY || '';
 export const authHeader = 'Basic ' + Buffer.from(`${WP_USER}:${WP_APP_PASS}`).toString('base64');
+
+

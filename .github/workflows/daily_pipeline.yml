@@ -1,0 +1,29 @@
+name: Pipeline Editorial Diario de Futbol
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 02:00 AM UTC (4:00 AM hora de España en verano, 3:00 AM en invierno)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Permite ejecutar el flujo manualmente desde la interfaz de GitHub
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ejecutar Pipeline de Artículos con DeepSeek
+        env:
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASS: ${{ secrets.WP_APP_PASS }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          WP_API_URL: ${{ secrets.WP_API_URL }}
+        run: node scripts/generate_daily_pipeline.mjs
