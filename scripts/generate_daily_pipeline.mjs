@@ -16,11 +16,11 @@ const CATEGORIES_WP_MAP = {
 };
 
 const DAILY_SCHEDULE = [
-  { time: '08:00:00', type: 'Guía Definitiva / Pilar (2,000 - 2,500 palabras)', num: 1 },
-  { time: '11:00:00', type: 'Tutorial Paso a Paso / "Cómo hacer" (1,500 - 1,800 palabras)', num: 2 },
-  { time: '14:00:00', type: 'Comparativa / Lista Recomendada (Listicle) (1,500 - 2,000 palabras)', num: 3 },
-  { time: '17:00:00', type: 'Caso Práctico / Resolución de Problema (1,200 - 1,500 palabras)', num: 4 },
-  { time: '20:00:00', type: 'Tendencias / Preguntas Frecuentes (1,200 - 1,500 palabras)', num: 5 }
+  { time: '08:00:00', type: 'Guía Definitiva / Pilar (2200 - 3000 palabras)', num: 1 },
+  { time: '11:00:00', type: 'Tutorial Paso a Paso / "Cómo hacer" (2200 - 3000 palabras)', num: 2 },
+  { time: '14:00:00', type: 'Comparativa / Lista Recomendada (Listicle) (2200 - 3000 palabras)', num: 3 },
+  { time: '17:00:00', type: 'Caso Práctico / Resolución de Problema (2200 - 3000 palabras)', num: 4 },
+  { time: '20:00:00', type: 'Tendencias / Preguntas Frecuentes (2200 - 3000 palabras)', num: 5 }
 ];
 
 // Helper to query Unsplash API or fallback to LoremFlickr
@@ -156,12 +156,12 @@ async function generateDailyTopics() {
   try {
     const prompt = `
 Genera un objeto JSON con exactamente 5 temas/palabras clave principales de alta tendencia sobre fútbol mundial (enfocado en el Mundial 2026, fichajes, estrellas mundiales o táctica moderna) para escribir mañana.
-Deben distribuirse exactamente en estos 5 formatos secuenciales:
-1. Guía Definitiva / Pilar: 2,000 - 2,500 palabras. Palabra clave de gran volumen.
-2. Tutorial / "Cómo hacer": 1,500 - 1,800 palabras. Intención resolutiva de problemas prácticos del hincha o jugador.
-3. Comparativa / Listicle: 1,500 - 2,000 palabras. Lista de elementos comparados.
-4. Caso Práctico: 1,200 - 1,500 palabras. Long-tail sobre un caso táctico, revelación, lesión o club específico.
-5. Tendencias / FAQ: 1,200 - 1,500 palabras. Optimizado para Snippets / Discover sobre una tendencia candente.
+Deben distribuirse exactamente en estos 5 formatos secuenciales (todos con una extensión obligatoria de entre 2200 y 3000 palabras):
+1. Guía Definitiva / Pilar: Palabra clave de gran volumen.
+2. Tutorial / "Cómo hacer": Intención resolutiva de problemas prácticos del hincha o jugador.
+3. Comparativa / Listicle: Lista de elementos comparados.
+4. Caso Práctico: Long-tail sobre un caso táctico, revelación, lesión o club específico.
+5. Tendencias / FAQ: Optimizado para Snippets / Discover sobre una tendencia candente.
 
 El JSON devuelto debe tener esta estructura exacta:
 {
@@ -326,7 +326,7 @@ DEBES responder con un objeto JSON estricto que contenga los campos detallados a
       const userPrompt = `
 Parámetros de entrada para el artículo:
 - **NÚMERO DE ARTÍCULO EN EL PIPELINE**: ${scheduleItem.num} de 5
-- **TIPO DE ARTÍCULO Y EXTENSIÓN**: ${scheduleItem.type}
+- **TIPO DE ARTÍCULO**: ${scheduleItem.type}
 - **NICHO / SITIO WEB**: ${topic.nicho || 'Fútbol / Copa Mundial de la FIFA 2026'}
 - **TEMA O PALABRA CLAVE**: "${topic.keyword}"
 - **TÍTULO PROPUESTO**: "${topic.title}"
@@ -335,8 +335,12 @@ Parámetros de entrada para el artículo:
 
 Aplica con rigor de hierro los 6 pasos editorial-SEO:
 1. Integra "${topic.keyword}" de forma natural en el H1 (Título), primer párrafo, un H2 y los metadatos. Añade al menos 8 palabras clave LSI semánticas.
-2. Estructura con 4-7 H2s ordenados lógicamente y subsecciones H3. Agrega un Índice de Contenidos (Table of Contents) estructurado semánticamente al inicio.
-3. Escribe la cantidad de palabras requerida para el tipo de artículo. Respeta la regla de estilo humano (sin muletillas de IA).
+2. Estructura obligatoriamente con un mínimo de 6 o 7 encabezados H2 principales ordenados lógicamente, y al menos 2 subsecciones H3 detalladas dentro de cada H2 principal. Agrega un Índice de Contenidos (Table of Contents) estructurado semánticamente al inicio.
+3. EXTENSIÓN OBLIGATORIA: El artículo debe tener entre 2200 y 3000 palabras reales en el cuerpo del texto (excluyendo etiquetas HTML). Para lograrlo:
+   - Desarrolla cada sección H2 y H3 con explicaciones extremadamente exhaustivas, profundas e informativas.
+   - Escribe al menos 4 párrafos largos de 100-150 palabras para cada encabezado H2 y H3.
+   - Prohibido resumir conceptos, usar respuestas cortas o dejar secciones vacías. Usa explicaciones periodísticas detalladas, telemetría táctica, datos y ejemplos históricos del fútbol.
+   - Respeta estrictamente la regla de estilo humano (sin muletillas de IA).
 4. Inserta los placeholders \`<!-- INSERTA IMAGEN 1 AQUÍ -->\` y \`<!-- INSERTA IMAGEN 2 AQUÍ -->\`.
 5. Asegura un JSON-LD schema válido y metadatos SEO.
 6. Respuesta estrictamente en formato JSON válido.
