@@ -71,6 +71,47 @@ async function fetchUnsplashImage(query, isFeatured = false) {
   return `https://loremflickr.com/${width}/${height}/soccer,football,stadium/all?lock=${lock}`;
 }
 
+// Helper to get or create tag IDs in WordPress
+async function getOrCreateTagIds(tagNames) {
+  if (!tagNames || tagNames.length === 0) return [];
+  const tagIds = [];
+  
+  for (const name of tagNames) {
+    try {
+      const trimmedName = name.trim();
+      if (!trimmedName) continue;
+
+      console.log(`[Tags] Resolving tag: "${trimmedName}"...`);
+      const res = await fetch(`${WP_API_URL}/tags`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: trimmedName })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log(`[Tags] Created new tag: "${trimmedName}" (ID: ${data.id})`);
+        tagIds.push(data.id);
+      } else {
+        const data = await res.json();
+        if (data.code === 'term_exists' && data.data && data.data.term_id) {
+          console.log(`[Tags] Tag already exists: "${trimmedName}" (ID: ${data.data.term_id})`);
+          tagIds.push(data.data.term_id);
+        } else {
+          console.warn(`[Tags] Failed to resolve tag "${trimmedName}":`, data.message);
+        }
+      }
+    } catch (err) {
+      console.warn(`[Tags] Network error resolving tag "${name}":`, err.message);
+    }
+  }
+  return tagIds;
+}
+
+
 
 // Helper to upload media to WordPress
 async function uploadMedia(imageUrl, title, slug, suffix) {
@@ -417,7 +458,11 @@ Aplica con rigor de hierro los 6 pasos editorial-SEO:
           }
         }
 
-        // 5. Publish to WordPress with 'future' status
+        // 5. Resolve tags to WordPress tag IDs
+        console.log(`Resolving tags for WordPress...`);
+        const resolvedTagIds = await getOrCreateTagIds(parsed.tags || []);
+
+        // 6. Publish to WordPress with 'future' status
         console.log(`Scheduling post on WordPress for ${publishTimeISO}...`);
         const catId = CATEGORIES_WP_MAP[topic.category] || 2; // Default to 'resultados' (2)
 
@@ -429,7 +474,7 @@ Aplica con rigor de hierro los 6 pasos editorial-SEO:
           excerpt: parsed.excerpt,
           content: finalContentHtml,
           categories: [catId],
-          tags: parsed.tags || [],
+          tags: resolvedTagIds,
           meta: {
             rank_math_focus_keyword: topic.keyword,
             rank_math_title: parsed.meta_title,
