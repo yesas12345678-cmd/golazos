@@ -366,8 +366,10 @@ Aplica con rigor de hierro los 6 pasos editorial-SEO:
                 { role: 'system', content: SYSTEM_PROMPT },
                 { role: 'user', content: userPrompt }
               ],
-              response_format: { type: 'json_object' }
+              response_format: { type: 'json_object' },
+              max_tokens: 8000
             })
+
           });
 
           if (!response.ok) {
@@ -391,8 +393,12 @@ Aplica con rigor de hierro los 6 pasos editorial-SEO:
 
           const textOnly = parsed.content.replace(/<[^>]*>/g, ' ');
           const wordCount = textOnly.trim().split(/\s+/).filter(w => w.length > 0).length;
+          if (wordCount < 2150) {
+            throw new Error(`Article generated was too short (${wordCount} words). Minimum required is 2150 words.`);
+          }
           console.log(`Success! Article generated: ${wordCount} words.`);
           break;
+
         } catch (err) {
           console.error(`Attempt ${attempt} failed:`, err.message);
           if (attempt >= maxAttempts) {
