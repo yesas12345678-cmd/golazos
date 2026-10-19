@@ -12,13 +12,56 @@ const geminiKey = process.env.GEMINI_API_KEY;
 const AUTHOR_ID = 2; // Manuel López
 
 // 1. Antislop & Banned patterns
-const BANNED_PATTERNS = [
-  /sign\b/i, /prohibido/i, /traffic/i, /car\b/i, /vehicle/i, /road\b/i, /street\b/i,
-  /cemetery/i, /gravestone/i, /grave\b/i, /police/i, /cop\b/i, /tarot/i, /scrabble/i,
-  /wooden block/i, /brick wall/i, /graffiti/i, /cat\b/i, /dog\b/i, /umbrella/i,
-  /american football/i, /nfl/i, /rugby/i, /cricket/i, /baseball/i, /basketball/i,
-  /military/i, /soldier/i, /army/i, /weapon/i
-];
+const STRICT_BANNED_REGEX = /\.(pdf|djvu|ogg|oga|ogv|svg|eps|ai|tif|tiff)($|\?|\/)|fileicon|file-type-icons|page1-|page2-|thumbnail\.pdf|speaker|loudspeaker|sound\b|audio\b|icon\b|logo\b|symbol\b|emblem\b|crest\b|coat[ _-]of[ _-]arms|flag\b|map\b|chart\b|graph\b|table\b|diagram|schematic|formation|lineup|line_up|drawing|sketch|clipart|illustration|cartoon|book\b|journal\b|thesis\b|report\b|magazine\b|newspaper\b|archive\b|sign\b|traffic|cemetery|gravestone|soldier|military|army|navy|weapon/i;
+
+async function verifyFootballImageWithVision(buffer, mimeType = 'image/jpeg') {
+  try {
+    const b64 = Buffer.from(buffer).toString('base64');
+    const prompt = `You are a strict quality control inspector for the professional football (soccer) portal "Golazos".
+Inspect this candidate image.
+Respond strictly in JSON:
+{
+  "is_real_football_photo": boolean,
+  "is_icon_or_document_or_diagram": boolean,
+  "confidence": number,
+  "reason": string
+}
+
+RULES:
+1. "is_real_football_photo" MUST be true ONLY if the image is an authentic, real-life photograph directly depicting association football/soccer (players on the pitch, match action, stadium, fans in stands, referee on field, football ball, training drills on grass, trophy celebration).
+2. MUST BE FALSE for: digital icons, loudspeaker/speaker symbols, audio icons, documents, PDF scans, book covers, diagrams, tactical schematics, flags, maps, logos, drawings, clipart, and non-football photos.
+3. If "is_icon_or_document_or_diagram" is true, "is_real_football_photo" MUST BE FALSE.`;
+
+    const body = {
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: mimeType.split(';')[0], data: b64 } }
+        ]
+      }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      console.warn(`    ⚠️ Vision API devolvió HTTP ${res.status}`);
+      return { is_real_football_photo: false, reason: `HTTP ${res.status}` };
+    }
+
+    const data = await res.json();
+    const textPart = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textPart) return { is_real_football_photo: false, reason: 'Respuesta vacía' };
+    return JSON.parse(textPart);
+  } catch (err) {
+    console.warn(`    ⚠️ Error en verificación visual:`, err.message);
+    return { is_real_football_photo: false, reason: err.message };
+  }
+}
 
 function countWords(html) {
   return html
@@ -43,15 +86,15 @@ function getSearchQueries(title, categoryName) {
   const t = title.toLowerCase();
   const queries = [];
   if (/var|árbitro|tarjeta|regla|fuera de juego|penalti|mano|tiempo añadido/i.test(t)) {
-    queries.push('association football referee', 'football referee penalty', 'assistant referee football');
+    queries.push('association football referee match', 'football referee penalty', 'assistant referee football');
   } else if (/táctica|sistema|4-3-3|3-5-2|presión|defensa|bloque|transición|falso nueve|xg|goles esperados/i.test(t)) {
-    queries.push('soccer tactical formation', 'association football match pitch', 'football players tactical action');
+    queries.push('association football match pitch', 'football players match action', 'soccer players pitch');
   } else if (/entrenamiento|físico|resistencia|velocidad|nutrición|lesión|gps|isquiotibiales|sueño|fuerza/i.test(t)) {
-    queries.push('soccer player training pitch', 'football training drills', 'association football workout');
+    queries.push('soccer training pitch', 'football players grass pitch', 'soccer player match action');
   } else if (/champions|mundial|libertadores|torneo|copa|estadio|balón de oro|remontadas/i.test(t)) {
     queries.push('UEFA Champions League match', 'FIFA World Cup match', 'association football stadium match');
   }
-  queries.push('association football match pitch', 'soccer player match ball', 'association football match');
+  queries.push('association football match pitch', 'soccer match stadium action');
   return queries;
 }
 
@@ -60,7 +103,9 @@ async function fetchWikimediaImages(queries, usedImages, neededCount = 3) {
 
   for (const q of queries) {
     if (found.length >= neededCount) break;
-    const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(q)}&gsrlimit=12&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1280&format=json`;
+    // Añadir filetype:bitmap y exclusiones directas en la consulta
+    const fullQuery = `${q} -soldier -military -army filetype:bitmap`;
+    const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(fullQuery)}&gsrlimit=12&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1280&format=json`;
 
     try {
       const res = await fetch(endpoint, {
@@ -76,14 +121,39 @@ async function fetchWikimediaImages(queries, usedImages, neededCount = 3) {
         const info = page.imageinfo?.[0];
         if (!info) continue;
         const title = page.title || '';
-        if (BANNED_PATTERNS.some(p => p.test(title))) continue;
 
+        // 1. Filtro estricto regex en título y URL
         const imgUrl = info.thumburl || info.url;
-        if (!imgUrl || !/\.(jpe?g|png|webp)/i.test(imgUrl)) continue;
+        if (!imgUrl || STRICT_BANNED_REGEX.test(title) || STRICT_BANNED_REGEX.test(imgUrl)) continue;
         if (usedImages.has(imgUrl)) continue;
 
-        usedImages.add(imgUrl);
-        found.push({ title: title.replace('File:', '').replace(/\.[^/.]+$/, ''), url: imgUrl });
+        // 2. Descargar buffer para inspección visual previa
+        try {
+          const dlRes = await fetch(imgUrl, {
+            headers: { 'User-Agent': 'MediaWikiBot/1.0 (contacto@golazos.co) NodeFetch' },
+            signal: AbortSignal.timeout(15000)
+          });
+          if (!dlRes.ok) continue;
+          const buf = await dlRes.arrayBuffer();
+          const mime = dlRes.headers.get('content-type') || 'image/jpeg';
+
+          // 3. Puerta de Verificación 100% con Gemini Vision
+          const vision = await verifyFootballImageWithVision(buf, mime);
+          if (vision.is_real_football_photo === true && !vision.is_icon_or_document_or_diagram) {
+            console.log(`      ✅ Foto aprobada por Gemini Vision: "${title.slice(0, 40)}" (${vision.reason})`);
+            usedImages.add(imgUrl);
+            found.push({
+              title: title.replace('File:', '').replace(/\.[^/.]+$/, ''),
+              url: imgUrl,
+              buffer: Buffer.from(buf),
+              mime
+            });
+          } else {
+            console.log(`      ❌ Descartada por Gemini Vision: "${title.slice(0, 40)}" -> ${vision.reason}`);
+          }
+        } catch (err) {
+          console.warn(`      ⚠️ Error descargando/analizando candidato:`, err.message);
+        }
       }
     } catch (e) {
       console.warn(`    Fallo búsqueda Wikimedia "${q}":`, e.message);
@@ -94,15 +164,7 @@ async function fetchWikimediaImages(queries, usedImages, neededCount = 3) {
 }
 
 async function uploadImageToWordPress(imgObj, articleTitle) {
-  const res = await fetch(imgObj.url, {
-    headers: { 'User-Agent': 'MediaWikiBot/1.0 (contacto@golazos.co) NodeFetch' },
-    signal: AbortSignal.timeout(20000)
-  });
-  if (!res.ok) throw new Error(`Fallo descarga imagen ${imgObj.url}: ${res.status}`);
-  const buffer = await res.arrayBuffer();
-  const fileBytes = Buffer.from(buffer);
-
-  const cleanName = 'img_' + Math.random().toString(36).substring(2, 9) + '.jpg';
+  const cleanName = 'futbol_' + Math.random().toString(36).substring(2, 9) + '.jpg';
   const altText = `${articleTitle}: ${imgObj.title.slice(0, 80)}`;
 
   const wpRes = await fetch(`${apiUrl}/media`, {
@@ -112,7 +174,7 @@ async function uploadImageToWordPress(imgObj, articleTitle) {
       'Content-Type': 'image/jpeg',
       'Content-Disposition': `attachment; filename="${cleanName}"`
     },
-    body: fileBytes
+    body: imgObj.buffer
   });
 
   if (!wpRes.ok) {

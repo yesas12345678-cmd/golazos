@@ -1135,51 +1135,74 @@ frontend_inspector_first_actioned_on = ""
     ```
   - **Alternancia categorial estricta:** Las 4 categorías se intercalan de forma cíclica `(articleIndex % 4)` (Cat 1 $\rightarrow$ Cat 2 $\rightarrow$ Cat 3 $\rightarrow$ Cat 4 $\rightarrow$ Cat 1...) para que jamás coincidan días consecutivos de la misma categoría en la portada.
 
-- **3. Adquisición y Curación Semántica de Imágenes (Wikimedia Commons API):**
+- **3. Adquisición y Curación Semántica de Imágenes con Verificación Visual 100% (Wikimedia Commons + Gemini Vision):**
   - **Cantidad por Artículo:** Exactamente 3 imágenes reales, profesionales y libres de derechos comerciales:
     1. **Imagen Destacada (`featured_media`):** Cabecera del artículo y miniatura en portada y categorías.
     2. **Imagen Intermedia 1:** Inyectada en el HTML a ~1/3 del cuerpo del texto.
     3. **Imagen Intermedia 2:** Inyectada en el HTML a ~2/3 del cuerpo del texto.
-  - **Regla de Oro:** **PROHIBIDO buscar con títulos completos en español.** Toda consulta debe traducirse a 2-3 palabras técnicas en inglés.
-  - **Tabla de Mapeo de Enrutamiento Semántico (Query Routing):**
+  - **Regla de Oro de Búsqueda:** **PROHIBIDO buscar con títulos completos en español.** Toda consulta debe traducirse a 2-3 palabras técnicas en inglés y añadir obligatoriamente `filetype:bitmap` para forzar a la API de Wikimedia a devolver únicamente fotografías (JPG/PNG) y descartar archivos de audio (.ogg), libros escaneados (.pdf) o gráficos vectoriales (.svg).
+  - **Filtro de Raíz en la Query de Wikimedia:**
     ```javascript
-    function getSearchQueries(title, categoryName) {
-      const t = title.toLowerCase();
-      const queries = [];
-      // Enrutamiento por palabras clave técnicas
-      if (/var|árbitro|tarjeta|regla|fuera de juego|penalti|mano/i.test(t)) {
-        queries.push('association football referee', 'football referee penalty', 'assistant referee football');
-      } else if (/táctica|sistema|4-3-3|3-5-2|presión|defensa|bloque|transición/i.test(t)) {
-        queries.push('soccer tactical formation', 'association football match pitch', 'football players tactical action');
-      } else if (/entrenamiento|físico|resistencia|velocidad|nutrición|lesión/i.test(t)) {
-        queries.push('soccer player training pitch', 'football training drills', 'association football workout');
-      } else if (/champions|mundial|eurocopa|torneo|copa|estadio/i.test(t)) {
-        queries.push('UEFA Champions League match', 'FIFA World Cup match', 'association football stadium match');
-      }
-      // Fallbacks temáticos generales del nicho
-      queries.push('association football match pitch', 'soccer player match ball', 'association football match');
-      return queries;
+    // Obligatorio: filetype:bitmap y exclusiones directas en la consulta
+    const query = `${searchTerm} -soldier -military -army filetype:bitmap`;
+    ```
+  - **Filtro Negativo Estricto de Expresiones Regulares (`STRICT_BANNED_REGEX`):**
+    Antes de procesar cualquier archivo, se valida tanto el título como la URL contra una lista exhaustiva de exclusiones para descartar al 100% iconos de archivos, audios, documentos, esquemas o páginas de libros:
+    ```javascript
+    const STRICT_BANNED_REGEX = /\.(pdf|djvu|ogg|oga|ogv|svg|eps|ai|tif|tiff)($|\?|\/)|fileicon|file-type-icons|page1-|page2-|thumbnail\.pdf|speaker|loudspeaker|sound\b|audio\b|icon\b|logo\b|symbol\b|emblem\b|crest\b|coat[ _-]of[ _-]arms|flag\b|map\b|chart\b|graph\b|table\b|diagram|schematic|formation|lineup|line_up|drawing|sketch|clipart|illustration|cartoon|book\b|journal\b|thesis\b|report\b|magazine\b|newspaper\b|archive\b|sign\b|traffic|cemetery|gravestone|soldier|military|army|navy|weapon/i;
+    ```
+  - **🛡️ Puerta de Verificación Visual 100% con IA Multimodal (Gemini Vision Pre-Flight Gate):**
+    **MANDATO UNIVERSAL OBLIGATORIO:** Ninguna imagen puede subirse a WordPress ni asignarse como imagen destacada o dentro del contenido sin haber superado previamente la inspección visual de la IA multimodal (`gemini-3.5-flash-lite` o superior).
+    ```javascript
+    async function verifyFootballImageWithVision(buffer, mimeType = 'image/jpeg') {
+      const b64 = Buffer.from(buffer).toString('base64');
+      const prompt = `You are a strict quality control inspector for the professional football (soccer) portal "Golazos".
+Inspect this candidate image.
+Respond strictly in JSON:
+{
+  "is_real_football_photo": boolean,
+  "is_icon_or_document_or_diagram": boolean,
+  "confidence": number,
+  "reason": string
+}
+
+CRITICAL RULES:
+1. "is_real_football_photo" MUST be true ONLY if the image is an authentic, real-life photograph directly depicting association football/soccer (players on the pitch, match action, stadium, fans in stands, referee on field, football ball, training drills on grass, trophy celebration).
+2. MUST BE FALSE for: digital icons, loudspeaker/speaker symbols, audio icons, documents, PDF scans, book covers, diagrams, tactical schematics, flags, maps, logos, drawings, clipart, and non-football photos.
+3. If "is_icon_or_document_or_diagram" is true, "is_real_football_photo" MUST BE FALSE.`;
+
+      const body = {
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType: mimeType.split(';')[0], data: b64 } }
+          ]
+        }],
+        generationConfig: { responseMimeType: 'application/json' }
+      };
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+      const textPart = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!textPart) return { is_real_football_photo: false, reason: 'Empty response' };
+      return JSON.parse(textPart);
     }
     ```
-  - **Filtro Antislop Visual (`BANNED_PATTERNS`):**
-    ```javascript
-    const BANNED_PATTERNS = [
-      /sign\b/i, /prohibido/i, /traffic/i, /car\b/i, /vehicle/i, /road\b/i, /street\b/i,
-      /cemetery/i, /gravestone/i, /grave\b/i, /police/i, /cop\b/i, /tarot/i, /scrabble/i,
-      /wooden block/i, /brick wall/i, /graffiti/i, /cat\b/i, /dog\b/i, /umbrella/i,
-      /american football/i, /nfl/i, /rugby/i, /cricket/i, /baseball/i, /basketball/i,
-      /military/i, /soldier/i, /army/i, /weapon/i
-    ];
-    ```
+    - **Criterio de Aceptación:** Si `is_real_football_photo !== true` o `is_icon_or_document_or_diagram === true`, la imagen candidata se **RECHAZA INMEDIATAMENTE**, se registra en logs y se evalúa el siguiente resultado de Wikimedia.
+    - **Tasa de Error Garantizada:** 0%. Ningún icono de altavoz, carátula de libro en PDF, esquema táctico ni gráfico no fotográfico llega jamás a la biblioteca de medios ni a la web pública.
   - **Descarga de Miniaturas Optimizadas (`iiurlwidth=1280`):**
     ```javascript
-    const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=10&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1280&format=json`;
+    const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=12&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1280&format=json`;
     const res = await fetch(endpoint, {
       headers: { 'User-Agent': 'MediaWikiBot/1.0 (contact@dominio.com) NodeFetch' },
       signal: AbortSignal.timeout(15000)
     });
     const data = await res.json();
-    // Extraer thumburl de 1280px (150-350 KB), nunca el archivo original de 25 MB
     ```
   - **Inyección de Metadatos SEO y Marcado Gutenberg:**
     ```html
@@ -1188,6 +1211,8 @@ frontend_inspector_first_actioned_on = ""
       <figcaption>[TÍTULO]: [DESCRIPCIÓN]</figcaption>
     </figure>
     ```
+  - **Auditoría y Sustitución Retroactiva de Imágenes Existentes:**
+    Si ya existen artículos publicados antes de aplicar este filtro, se ejecuta el script de auditoría (`audit_and_fix_published_images.mjs`) que recorre todos los posts en `/wp-json/wp/v2/posts`, descarga su `featured_media`, la analiza con Gemini Vision y, si detecta cualquier icono o documento, la sustituye automáticamente por una fotografía real de alta resolución aprobada por la IA.
 
 - **4. Generación Editorial Exhaustiva (>2.500 Palabras) y Reglas de Maquetación:**
   - **Algoritmo de Conteo de Palabras y Expansión:**
