@@ -11,7 +11,7 @@
 > - **Cuenta Maestra de Google (Site Kit / Search Console / Analytics):** `yesas12345678@gmail.com` (Manuel López). **SIEMPRE** se utiliza esta cuenta para iniciar sesión y vincular los servicios de Google en cualquier web.
 >
 > ⚡ **EJECUCIÓN CONTINUA DEL PASO 18 (GENERACIÓN EDITORIAL SIN ESPERA):**  
-> Una vez completados los pasos 1 al 17 de configuración técnica, maquetación, diseño y taxonomías, **el Paso 18 se inicia de forma 100% automática, autónoma y desatendida SIN pedir permiso ni confirmación intermedia al usuario**, ejecutando directamente el pipeline de redacción y publicación masiva de los 48 artículos con DeepSeek y Wikimedia Commons de principio a fin.
+> Una vez completados los pasos 1 al 17 de configuración técnica, maquetación, diseño y taxonomías, **el Paso 18 se inicia de forma 100% automática, autónoma y desatendida SIN pedir permiso ni confirmación intermedia al usuario**, ejecutando directamente el pipeline de redacción y publicación masiva de los 48 artículos con Google Gemini API y Wikimedia Commons de principio a fin.
 
 ---
 
@@ -36,8 +36,7 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
 | **Métricas y Google Analytics** | **Google Site Kit** | Plugin oficial `google-site-kit` | Vinculación oficial de Google Search Console y Google Analytics 4 (GA4) con la cuenta oficial de Google. |
 | **Optimización SEO On-Page** | **Yoast SEO** | Plugin oficial `wordpress-seo` | Indexación de sitemaps XML, calibración de metaetiquetas y aplicación del archivo de configuración INI maestro. |
 | **Formularios de Contacto** | **Contact Form 7** | Plugin oficial `contact-form-7` | Renderizado del formulario de contacto mediante shortcode en la página legal de soporte. |
-| **Generación de Contenidos (IA Primaria)** | **DeepSeek API** | `https://api.deepseek.com/v1/chat/completions` (Modelo `deepseek-chat`) | Redacción editorial exhaustiva de artículos de más de 2.500 palabras de alto valor informativo para AdSense. |
-| **Generación de Contenidos (IA Alternativa)** | **Google Gemini API** | `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent` | Motor de alta velocidad para redacción editorial multi-etapa con control estricto de palabras en memoria. |
+| **Generación de Contenidos (Motor Oficial)** | **Google Gemini API** | `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent` | Motor oficial de alta velocidad para redacción editorial multi-etapa con control estricto de palabras en memoria (>2.500 palabras por artículo). |
 | **Normalizador y Limpiador HTML** | **Algoritmo `cleanHtml` Regex** | Expresiones regulares en Node.js | Purga de etiquetas `<h1>` (evita duplicidad con el tema), supresión de viñetas (`<ul>`, `<ol>`, `<li>`), eliminación de divisores horizontales (`<hr>`). |
 | **Medidor y Expansor Editorial** | **Algoritmo `cleanWordCount` Loop** | Conteo de tokens/palabras en memoria | Medición en tiempo real del cuerpo del artículo sin tags HTML y llamada expansiva hasta superar 2.500 palabras. |
 | **Adquisición de Imágenes (Principal)** | **Wikimedia Commons API** | `https://commons.wikimedia.org/w/api.php` (`action=query&generator=search&iiurlwidth=1280`) | Banco masivo de fotografías de eventos reales y licencias comerciales libres (Creative Commons / Dominio Público) sin cuotas por hora. |
@@ -151,7 +150,6 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
   WP_USER="zVaito"
   WP_APP_PASS="xxxx xxxx xxxx xxxx xxxx xxxx"
   WP_API_URL="https://[dominio.com]/wp-json/wp/v2"
-  DEEPSEEK_API_KEY="sk-..."
   GEMINI_API_KEY="..."
   UNSPLASH_ACCESS_KEY="..."
   TELEGRAM_BOT_TOKEN="..."
@@ -1109,9 +1107,8 @@ frontend_inspector_first_actioned_on = ""
 ### Paso 18: Generación Masiva y Publicación Programada de Artículos (48 Artículos)
 
 - **🔧 Herramientas, Tecnologías, APIs y Algoritmos Utilizados:**
-  - **Motores de Inteligencia Artificial:**
-    - **Google Gemini API:** `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}` (o `gemini-2.5-flash-lite`).
-    - **DeepSeek API:** `https://api.deepseek.com/v1/chat/completions` (modelo `deepseek-chat`, temperature `0.7`, max_tokens `8000`).
+  - **Motor de Inteligencia Artificial Oficial:**
+    - **Google Gemini API:** `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}` (modelo de alta velocidad para redacción editorial multi-etapa >2.500 palabras).
   - **Repositorio de Medios Abiertos:** **Wikimedia Commons MediaWiki Action API** (`https://commons.wikimedia.org/w/api.php`).
     - Parámetros: `action=query&generator=search&gsrnamespace=6&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1280&format=json`.
     - Cabecera obligatoria: `User-Agent: MediaWikiBot/1.0 (contact@dominio.com) NodeFetch`.
