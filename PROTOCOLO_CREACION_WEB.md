@@ -188,9 +188,21 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
 
 - **Generación Gráfica con `generate_image`:**
   1. **Logotipo de Cabecera (Horizontal):**
-     - Prompt: Logotipo horizontal vectorial limpio, minimalista y moderno sobre fondo transparente para la marca `[Nombre de la web]`, especializado en `[Temática de la web]`. Tipografía legible, sin marcos de dispositivos y con colores corporativos armónicos.
-  2. **Emblema / Favicon Circular (512x512 px):**
-     - Prompt: Isotipo, insignia o badge circular vectorial representativo del nicho `[Temática de la web]`, diseño plano minimalista de alta definición con fondo transparente, centrado, ideal para favicon de navegador e icono de aplicación móvil.
+     - **Dimensiones:** Horizontal (~1100x220 px o ratio 5:1).
+     - **Prompt:** Logotipo horizontal vectorial limpio, minimalista y moderno sobre fondo transparente para la marca `[Nombre de la web]`, especializado en `[Temática de la web]`. Tipografía legible y atractiva, isotipo a la izquierda, sin marcos de dispositivos y con colores corporativos armónicos.
+  2. **Favicon de Alta Visibilidad y Contraste (512x512 px):**
+     - **🎯 Las 5 Reglas de Oro del Favicon Profesional (Legibilidad Extrema a 16x16 y 32x32 px):**
+       1. **PROHIBICIÓN TOTAL DE TEXTO:** Jamás incluir el nombre de la web, palabras ni letras en el favicon. A 16x16 px el texto es físicamente un manchón borroso e ilegible.
+       2. **FORMATO SQUIRCLE (App Icon):** Ocupar el 90-95% del lienzo cuadrado mediante un contenedor de esquinas redondeadas (*squircle*, radio ~22%), con transparencia alfa limpia en las 4 esquinas exteriores. Los badges o círculos tradicionales flotantes desperdician un 40% del espacio, haciendo que el icono parezca diminuto en la pestaña.
+       3. **ALTO CONTRASTE DUAL (Modo Claro y Modo Oscuro):** El contenedor debe usar un fondo degradado vibrante y saturado propio del nicho (ej. verde esmeralda brillante a menta neón para fútbol, azul eléctrico o dorado intenso) con silueta gruesa y elementos centrales en blanco puro (`#FFFFFF`) y acentos luminosos. Esto garantiza que resalte con fuerza tanto en pestañas de navegador en modo oscuro (fondo gris oscuro/negro) como en modo claro (fondo blanco).
+       4. **SÍMBOLO ÚNICO, GEOMÉTRICO Y SIN LÍNEAS FINAS:** Cero redes finas, cero texturas complejas ni microdetalles que se degraden en ruido. Utilizar una silueta vectorial audaz, limpia y reconocible en 1 milisegundo (ej. balón de fútbol geométrico moderno en 3D estilizado).
+       5. **ACTIVO INDEPENDIENTE Y AISLADO:** Generar a pantalla completa sin tarjetas de presentación, sin marcos grises y sin maquetas de muestra. **JAMÁS generar el favicon recortando el logotipo horizontal de la cabecera.**
+     - **Prompt Maestro para Favicon:**
+       ```text
+       Single app icon of a modern stylized [Símbolo del nicho, ej: soccer football]. Full frame, edge to edge, occupying the entire canvas. Vibrant [Color primario saturado, ej: dark emerald green] and electric [Color secundario, ej: neon mint] gradient background with rounded squircle corners. In the center, a bold, clean, thick-lined iconic [Símbolo principal, ej: soccer ball] with bright white and electric gold facets. Minimalist, high contrast, clean vector 3D look. Isolated icon filling the entire frame, NO presentation card, NO grey background, NO mockup labels, NO preview boxes, NO text, NO letters, NO numbers.
+       ```
+     - **Post-procesamiento con Transparencia Alfa (Python PIL):**
+       Si la imagen generada incluye esquinas blancas fuera del squircle, se aplica una máscara de esquinas redondeadas (`mask.rounded_rectangle([0,0,1023,1023], radius=225)`) y se exporta como PNG con canal alfa nativo a 512x512 px (`LANCZOS`).
 
 - **Script de Subida Programática a la Biblioteca de Medios:**
   ```javascript
@@ -228,7 +240,7 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
     return media.id;
   }
   ```
-  Guardar los IDs de los medios retornados para su asignación en el Favicon (Paso 8) y la Cabecera de Kadence (Paso 16).
+  Guardar los IDs de los medios retornados: `logoMediaId` para la Cabecera de Kadence (Paso 16) y `faviconMediaId` para el Favicon Oficial (Paso 8).
 
 ---
 
@@ -439,6 +451,8 @@ for (const p of pages) {
 
 - **Script y Payload de Configuración General:**
   ```javascript
+  // OBLIGATORIO: site_icon debe ser SIEMPRE faviconMediaId (el ID del favicon 512x512 generado en el Paso 3).
+  // PROHIBIDO usar el ID del logotipo horizontal de la cabecera.
   await fetch(`${process.env.WP_API_URL}/settings`, {
     method: 'POST',
     headers: {
@@ -451,7 +465,7 @@ for (const p of pages) {
       site_icon: faviconMediaId
     })
   });
-  console.log('Ajustes generales configurados con éxito.');
+  console.log(`Ajustes generales configurados con éxito. site_icon establecido a ID: ${faviconMediaId}`);
   ```
 
 ---
@@ -1028,6 +1042,7 @@ frontend_inspector_first_actioned_on = ""
   2. **Identidad del Sitio:**
      - Asignar el logotipo horizontal oficial generado en el Paso 3, omitiendo el recorte.
      - **Regla Estricta de Dimensión:** Establecer la anchura máxima del logotipo en **80 px** (`logo_width: 80`). Esto evita desbordamientos y garantiza que la cabecera sea ligera y compacta en móvil y escritorio.
+     - **⛔ BLINDAJE ABSOLUTO DEL FAVICON:** **PROHIBIDO tocar, seleccionar o recortar el "Icono del sitio" (Site Icon) en el Customizer.** El Customizer de WordPress ofrece recortar el logotipo para convertirlo en icono del sitio, lo cual corrompe el favicon sustituyéndolo por un recorte deformado e ilegible del banner horizontal. El Favicon se gestiona y blinda única y exclusivamente en el Paso 8 mediante la API REST con el archivo cuadrado de 512x512 px.
   3. **Fila Principal de Cabecera:**
      - **Regla Estricta de Posicionamiento:** El bloque **HTML 1** debe situarse **SIEMPRE en el siguiente hueco inmediatamente a la derecha del logotipo** (en la cuadrícula del maquetador, en la casilla contigua a la derecha de *Logotipo*, nunca en el centro de la cabecera).
      - Cambiar a la pestaña de código e insertar la descripción en dos líneas con formato inline y margen izquierdo:
