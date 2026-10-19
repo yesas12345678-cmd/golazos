@@ -1,0 +1,12 @@
+{
+  "name": "golazos",
+  "version": "1.0.0",
+  "description": "Golazos - Portal de fútbol y actualidad",
+  "type": "module",
+  "scripts": {
+    "verify": "node scripts/verify_connection.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

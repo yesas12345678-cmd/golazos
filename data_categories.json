@@ -1,0 +1,18 @@
+{
+  "Grandes Torneos": {
+    "id": 4,
+    "slug": "grandes-torneos"
+  },
+  "Táctica y Estrategia": {
+    "id": 5,
+    "slug": "tactica-y-estrategia"
+  },
+  "Entrenamiento y Rendimiento": {
+    "id": 6,
+    "slug": "entrenamiento-y-rendimiento"
+  },
+  "Reglamento y Arbitraje": {
+    "id": 7,
+    "slug": "reglamento-y-arbitraje"
+  }
+}
