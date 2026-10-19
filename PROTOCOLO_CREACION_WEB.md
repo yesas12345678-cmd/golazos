@@ -364,14 +364,30 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
   - **Plugin de Formularios:** `contact-form-7` con shortcode embebido `[contact-form-7 id="..." title="..."]`.
   - **Formato de Contenido:** HTML semántico adaptado al RGPD y la legislación vigente en España (LOPDGDD).
 
-#### Instrucción Maestra de Redacción:
-> **Regla de Adaptación:** Los textos legales deben reescribirse íntegramente con una longitud y estructura similares, manteniendo total formalidad legal sin duplicar textos palabra por palabra. Se adapta la temática (`[Temática de la web]`), el dominio de los correos (`[dominio.com]`) y el idioma al de la web.
+#### 📋 Directrices Maestras de Redacción y Personalización de Páginas Legales:
+
+> [!IMPORTANT]
+> **REGLAS DE ORO PARA LA GENERACIÓN DE LAS PÁGINAS LEGALES:**
+> 1. **Los corchetes son para personalizar:** Los campos entre corchetes como `[Nombre de la web]`, `[dominio.com]`, `[Temática de la web]` e `[Idioma de la web]` deben sustituirse siempre por los datos del proyecto actual.
+> 2. **Misma longitud rigurosa:** Debes reescribir los textos legales manteniendo exactamente la **misma longitud, amplitud y nivel de detalle** que los textos maestros de referencia detallados más abajo. No resumas, no recortes apartados ni generes versiones simplificadas.
+> 3. **Redacción original con la misma función legal:** Escribe estos textos de páginas legales con otras palabras, que transmitan lo mismo y cumplan idéntica función legal y formal (debido a su naturaleza jurídica), pero que parezcan textos diferentes y originales, nunca copias idénticas palabra por palabra.
+> 4. **Adaptación temática completa:** En lugar de `lunexfinances.com` y del sector de Finanzas / Criptomonedas (que sirve como plantilla maestra de referencia), se debe hablar en todo momento de `[La web en la que estamos trabajando]` y del tema concreto `[El tema de la web en la que estamos trabajando]`.
+> 5. **Idioma vehicular:** Escribe todas las páginas legales íntegramente en el idioma de la página web: `[Idioma de la página web]` (ej. español, inglés, francés, etc.).
+> 6. **Transformación de correos electrónicos:** Cuando en el texto de referencia aparezca un correo como `ejemplo@lunexfinances.com`, debes cambiarlo por `ejemplo@[el dominio de la web que estamos haciendo ahora]`. Es decir, mantén el prefijo (`contacto`, `manuellopezramos`) a menos que haya que adaptarlo por el idioma de la web (por ejemplo, de `contacto` a `contact` en webs en inglés o francés), pero cambiando siempre obligatoriamente el dominio.
+> 7. **Datos legales personales universales e invariables:** **NO edites ni alteres** la información personal de Manuel López Ramos:
+>    - **Titular y Responsable Legal:** `Manuel López Ramos`
+>    - **NIF:** `45841212S`
+>    - **Domicilio Fiscal:** `Calle Blas Infante, Córdoba, España`
+>    - **Jurisdicción:** `Juzgados y Tribunales de Córdoba, España`
+> 8. **Adaptación de conocimientos y trayectoria del fundador:** Lo que **SÍ debes editar** son los conocimientos y trayectoria de Manuel López Ramos: debes especificar siempre que cuenta con amplios conocimientos, años de experiencia y trayectoria contrastada en la temática concreta de la web que estamos haciendo (`[Temática de la web]`).
+> 9. **Prohibición estricta de saltarse títulos o cláusulas:** No te saltes ninguno de los títulos, encabezados o apartados legales (por ejemplo, las 14 cláusulas de la Política de Privacidad, el desglose de cookies técnicas/analíticas/publicitarias, las exenciones de responsabilidad del Aviso Legal o los términos de uso). Todos deben estar presentes con sus títulos correspondientes adaptados al idioma.
 
 #### Datos Legales Universales Invariables (Manuel López Ramos):
 - **Titular y Responsable Legal:** Manuel López Ramos
 - **NIF:** `45841212S`
 - **Domicilio Fiscal:** `Calle Blas Infante, Córdoba, España`
 - **Correos electrónicos del dominio:** `contacto@[dominio.com]`, `manuellopezramos@[dominio.com]`
+
 
 #### 🚨 REGLA ESTRICTA DE LOCALIZACIÓN OBLIGATORIA DE CONTACT FORM 7 (PROHIBICIÓN TOTAL DE FORMULARIOS EN INGLÉS EN WEBS EN ESPAÑOL U OTROS IDIOMAS):
 
@@ -497,61 +513,477 @@ console.log('✅ Formulario de contacto 100% verificado en el idioma oficial de 
 > **MANDATO DE BLOQUEO:** Si esta verificación falla, el agente tiene terminantemente prohibido avanzar al Paso 8 hasta corregir el formulario mediante `browser_subagent`.
 
 
-#### Script de Creación Masiva de Páginas Legales (`create_legal_pages.mjs`):
-```javascript
-const authHeader = `Basic ${Buffer.from(`${process.env.WP_USER}:${process.env.WP_APP_PASS}`).toString('base64')}`;
+#### 📄 Textos Maestros de Referencia para las 7 Páginas Legales (Plantilla Base Exhaustiva):
 
+> [!NOTE]
+> **CÓMO UTILIZAR ESTOS TEXTOS MAESTROS:**  
+> Los siguientes 7 bloques constituyen los textos de referencia jurídica oficiales. El agente debe reescribirlos con la **misma longitud, mismas secciones y misma formalidad jurídica**, pero parafraseados con palabras originales para evitar duplicidades, adaptándolos a `[Nombre de la web]`, `[dominio.com]`, `[Temática de la web]` e `[Idioma de la web]`:
+
+---
+
+##### 1. Sobre Nosotros
+```text
+Sobre Nosotros
+
+[Nombre de la web / Lunex Finances] fue fundada en 2025 para proporcionar análisis claros, fiables y rigurosamente elaborados sobre [Temática de la web / finanzas y criptomonedas]. En mercados o sectores impulsados por la emoción, apostamos por la disciplina, el análisis estructurado y la toma de decisiones basada en datos.
+
+Nuestra misión es ayudar a los lectores a comprender [Temática de la web / los mercados financieros] mediante investigación independiente, análisis verificable y contenido educativo práctico.
+
+Nuestro origen
+[Nombre de la web / Lunex Finances] nació como un proyecto personal de Manuel López Ramos, motivado por la falta de contenido transparente y basado en evidencia en el sector de [Temática de la web / las criptomonedas]. Con el tiempo, ha evolucionado hacia una plataforma centrada en la divulgación rigurosa, el análisis especializado y la creación de recursos didácticos para la comunidad.
+
+Sobre el fundador
+Manuel López Ramos cuenta con varios años de experiencia en el ámbito de [Temática de la web / mercados de criptomonedas], con un enfoque consolidado en el análisis a largo plazo, el estudio estructural y la psicología del comportamiento.
+Su filosofía se basa en:
+- Disciplina frente a especulación o improvisación.
+- Verificación rigurosa de datos y fuentes contrastables.
+- Enfoque formativo y analítico a largo plazo.
+Contacto: manuellopezramos@[dominio.com]
+
+Nuestra metodología
+- Utilizamos datos públicos y verificables.
+- Actualizamos el contenido regularmente.
+- Priorizamos el análisis objetivo sobre el sensacionalismo.
+- Mantenemos independencia editorial (sin influencia de contenido patrocinado ni presiones externas).
+
+A quién nos dirigimos
+Nuestro contenido está orientado a especialistas, aficionados y cualquier persona interesada en comprender [Temática de la web / los mercados financieros] desde una perspectiva racional y estructurada.
+
+Valores
+Transparencia, independencia y educación son los pilares fundamentales de [Nombre de la web / Lunex Finances].
+
+Aviso legal
+El contenido publicado tiene fines exclusivamente educativos y divulgativos, y no constituye asesoramiento profesional vinculante. Cada usuario es responsable de sus decisiones.
+
+Contacto
+- Ubicación: Calle Blas Infante, Córdoba, España.
+- Email: contacto@[dominio.com]
+- Tiempo de respuesta: 24-48 horas laborables.
+```
+
+---
+
+##### 2. Manuel López Ramos
+```text
+Manuel López Ramos
+
+Fundador de [Nombre de la web / Lunex Finances] y analista / responsable editorial especializado en [Temática de la web / finanzas personales y criptomonedas].
+
+Experiencia:
+- Varios años analizando y divulgando sobre [Temática de la web / mercados cripto].
+- Enfoque en el análisis a largo plazo, la evolución del sector y los fundamentos técnicos.
+- Especial interés en la investigación pedagógica y el comportamiento de la comunidad.
+
+Metodología:
+- Análisis basado en datos verificables y fuentes contrastables.
+- Enfoque educativo, divulgativo y transparente.
+- Rechazo del sensacionalismo informativo y las afirmaciones no fundamentadas.
+
+Este perfil forma parte del compromiso inquebrantable de transparencia y rigor de [Nombre de la web / Lunex Finances].
+
+Contacto:
+- Email profesional: manuellopezramos@[dominio.com]
+- Correspondencia: Calle Blas Infante, Córdoba, España.
+```
+
+---
+
+##### 3. Contáctanos
+```text
+Contáctanos
+
+Para esta página es obligatorio utilizar el plugin Contact Form 7 instalado y activado en WordPress.
+En el panel de administración (/wp-admin/admin.php?page=wpcf7) se debe editar el Formulario de Contacto 1 (el creado por defecto) para traducir al idioma de la web las etiquetas visuales:
+- "Tu nombre (obligatorio)"
+- "Tu correo electrónico (obligatorio)"
+- "Asunto"
+- "Tu mensaje (opcional)"
+- "Enviar mensaje"
+
+Código de inserción en la página:
+[contact-form-7 id="{formId}" title="Contacto"]
+
+Canales directos de comunicación alternativa:
+- Email de soporte general: contacto@[dominio.com]
+- Dirección editorial directa: manuellopezramos@[dominio.com]
+- Domicilio de correspondencia: Manuel López Ramos, Calle Blas Infante, Córdoba, España.
+- Tiempo estimado de atención: 24-48 horas.
+```
+
+---
+
+##### 4. Política de Privacidad
+```text
+POLÍTICA DE PRIVACIDAD – [NOMBRE DE LA WEB / LUNEX FINANCES]
+Sitio web: [dominio.com / lunexfinances.com]
+Correo de contacto: contacto@[dominio.com]
+Última actualización: [Mes y Año actual, ej. abril de 2026]
+
+1. Responsable del tratamiento
+El responsable del tratamiento de los datos personales es:
+- Titular: Manuel López Ramos
+- NIF: 45841212S
+- Domicilio: Calle Blas Infante, Córdoba, España
+- Correo electrónico: manuellopezramos@[dominio.com]
+
+2. Datos personales que se recopilan
+En este sitio web se pueden recopilar los siguientes datos personales:
+- Datos facilitados voluntariamente a través de formularios de contacto (nombre y correo electrónico).
+- Datos técnicos y de navegación, como dirección IP, tipo de dispositivo, navegador y páginas visitadas.
+- Datos recopilados mediante cookies, conforme a la Política de Cookies.
+No se recopilan datos bancarios ni información financiera sensible.
+
+3. Finalidad del tratamiento de los datos
+Los datos personales se utilizan para:
+- Responder a consultas enviadas por los usuarios.
+- Gestionar comunicaciones relacionadas con el sitio web.
+- Mejorar la experiencia de navegación.
+- Mostrar publicidad personalizada mediante Google AdSense.
+- Realizar análisis estadísticos del tráfico del sitio web.
+
+4. Base legal del tratamiento
+El tratamiento de los datos se basa en:
+- Consentimiento del usuario.
+- Interés legítimo para análisis básico del sitio web.
+- Cumplimiento de obligaciones legales cuando corresponda.
+
+5. Publicidad y Google AdSense
+Este sitio web utiliza Google AdSense para mostrar anuncios.
+Google y sus socios pueden utilizar cookies y tecnologías similares para:
+- Mostrar anuncios personalizados o no personalizados.
+- Medir la eficacia de los anuncios.
+- Limitar la repetición de anuncios.
+El usuario puede gestionar la personalización de anuncios en: https://adssettings.google.com/
+
+6. Uso de cookies
+Este sitio utiliza cookies propias y de terceros para fines técnicos, analíticos y publicitarios.
+El uso de cookies está regulado en la Política de Cookies, donde el usuario puede aceptar, rechazar o configurar sus preferencias en cualquier momento.
+
+7. Conservación de los datos
+Los datos personales se conservarán únicamente durante el tiempo necesario para cumplir las finalidades para las que fueron recogidos o mientras exista obligación legal.
+
+8. Comunicación de datos a terceros
+Los datos pueden ser compartidos con los siguientes proveedores:
+- Google LLC (Google AdSense y Google Analytics).
+- Proveedores de hosting y servicios técnicos.
+Estos terceros pueden tratar datos fuera del Espacio Económico Europeo bajo garantías adecuadas.
+
+9. Derechos del usuario (RGPD)
+El usuario puede ejercer los siguientes derechos:
+- Acceso a sus datos personales.
+- Rectificación.
+- Supresión.
+- Limitación del tratamiento.
+- Oposición.
+- Portabilidad de los datos.
+Para ejercerlos, puede escribir a: contacto@[dominio.com]
+
+10. Seguridad de los datos
+Se aplican medidas técnicas y organizativas adecuadas para proteger los datos personales, incluyendo:
+- Conexión segura mediante HTTPS.
+- Control de acceso restringido.
+- Sistemas de seguridad y protección contra accesos no autorizados.
+
+11. Menores de edad
+Este sitio web no está dirigido a menores de 14 años.
+No se recopilan datos de menores de forma intencionada. Si se detecta algún caso, los datos serán eliminados inmediatamente.
+
+12. Transferencias internacionales
+Algunos proveedores, como Google, pueden almacenar o tratar datos fuera del Espacio Económico Europeo.
+Estas transferencias se realizan con garantías adecuadas conforme al RGPD.
+
+13. Cambios en la política
+Esta política puede actualizarse en cualquier momento para adaptarse a cambios legales o técnicos.
+La versión vigente será siempre la publicada en esta página.
+
+14. Contacto
+Para cualquier cuestión relacionada con la privacidad: contacto@[dominio.com]
+```
+
+---
+
+##### 5. Política de Cookies
+```text
+POLÍTICA DE COOKIES – [NOMBRE DE LA WEB / LUNEX FINANCES]
+Última actualización: [Mes y Año actual, ej. abril de 2026]
+
+Resumen
+[Nombre de la web / Lunex Finances] utiliza cookies propias y de terceros para garantizar el funcionamiento del sitio web, analizar el uso del contenido y, en caso de activación, mostrar publicidad.
+El usuario puede aceptar, rechazar o configurar el uso de cookies en cualquier momento a través del panel de consentimiento habilitado en el sitio web.
+Para más información sobre el tratamiento de datos personales, consulta la Política de Privacidad.
+
+¿Qué son las cookies?
+Las cookies son pequeños archivos de texto que se almacenan en el dispositivo del usuario al visitar un sitio web.
+Permiten el funcionamiento técnico del sitio y, en algunos casos, la recopilación de información sobre la navegación.
+Las cookies pueden incluir identificadores técnicos, preferencias del usuario o datos estadísticos de uso.
+
+Tipos de cookies utilizadas
+
+A. Cookies técnicas (necesarias)
+Son esenciales para el funcionamiento del sitio web y no requieren consentimiento previo.
+Permiten funciones como:
+- Recordar el consentimiento de cookies.
+- Garantizar la seguridad del sitio.
+- Mantener el funcionamiento básico de formularios.
+Estas cookies no se utilizan con fines publicitarios ni de seguimiento.
+
+B. Cookies de análisis
+Se utilizan para comprender el uso del sitio web y mejorar su rendimiento.
+Ejemplo: Google Analytics (_ga, _gid)
+Finalidad:
+- Medición de tráfico.
+- Análisis de páginas visitadas.
+- Mejora de la experiencia del usuario.
+La información suele tratarse de forma agregada y puede ser gestionada por terceros conforme a sus propias políticas.
+
+C. Cookies publicitarias
+Si están activadas, servicios como Google AdSense pueden utilizar cookies para:
+- Mostrar anuncios.
+- Medir la eficacia publicitaria.
+- Limitar la repetición de anuncios.
+Estas cookies pueden basarse en la navegación del usuario en este y otros sitios web.
+
+D. Cookies de terceros
+Algunos contenidos integrados (por ejemplo, vídeos o servicios externos) pueden instalar cookies gestionadas por terceros.
+Estas cookies están sujetas a las políticas de cada proveedor externo.
+
+Cookies utilizadas en este sitio
+A modo informativo, este sitio puede utilizar las siguientes cookies:
+- cookie_consent → gestión de preferencias de consentimiento
+- _ga → análisis de usuarios (Google Analytics)
+- _gid → análisis de sesión (Google Analytics)
+- IDE → publicidad personalizada (Google AdSense)
+Algunas cookies pueden variar en función de los servicios activos en cada momento.
+
+Gestión del consentimiento
+Al acceder al sitio web, el usuario puede:
+- Aceptar todas las cookies.
+- Rechazar cookies no esenciales.
+- Configurar sus preferencias por categorías.
+El consentimiento puede modificarse en cualquier momento desde el enlace "Configuración de cookies" disponible en el pie de página.
+Las cookies no esenciales no se activan hasta que el usuario haya otorgado su consentimiento.
+Este sitio es compatible con un sistema de consentimiento conforme a los requisitos de Google Consent Mode v2.
+
+Cómo desactivar las cookies
+El usuario puede eliminar o bloquear cookies desde la configuración de su navegador.
+La desactivación de cookies técnicas puede afectar al funcionamiento del sitio web.
+
+Tratamiento por terceros
+Algunos proveedores externos, como Google, pueden tratar datos derivados del uso de cookies para analítica web, publicidad personalizada y medición de rendimiento. Estos terceros actúan como responsables independientes del tratamiento conforme a sus propias políticas. [Nombre de la web / Lunex Finances] no accede directamente a los datos combinados generados por dichos proveedores.
+
+Menores de edad
+Este sitio no está dirigido específicamente a menores de 13 años. No se recopilan de forma intencionada datos personales de menores sin consentimiento conforme a la normativa aplicable.
+
+Actualizaciones
+Esta política puede actualizarse para reflejar cambios legales, técnicos o en los servicios utilizados. La fecha de actualización se modificará en consecuencia.
+```
+
+---
+
+##### 6. Aviso Legal
+```text
+AVISO LEGAL – [NOMBRE DE LA WEB / LUNEX FINANCES]
+Última actualización: [Mes y Año actual, ej. abril de 2026]
+
+Identificación del titular del sitio web (LSSI-CE)
+En cumplimiento de la Ley 34/2002, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSI-CE), se informa de que el sitio web [dominio.com / lunexfinances.com] es titularidad de:
+- Titular: Manuel López Ramos
+- NIF: 45841212S
+- Domicilio: Calle Blas Infante, Córdoba, España
+- Correo electrónico de contacto: contacto@[dominio.com]
+Estos datos identifican al responsable del sitio web a efectos legales.
+
+Finalidad del sitio web
+[Nombre de la web / Lunex Finances] es un sitio web de carácter informativo y educativo especializado en:
+- [Temática de la web: Análisis deportivo / Finanzas personales]
+- [Táctica, reglamento y análisis / Mercados financieros y criptomonedas]
+- [Formación y divulgación general / Educación financiera y análisis económico]
+La información publicada tiene únicamente fines informativos generales.
+
+Exención de responsabilidad – No asesoramiento financiero / profesional
+El contenido de este sitio web no constituye en ningún caso asesoramiento profesional directo, legal, fiscal, técnico o de inversión. La información publicada es general y no tiene en cuenta circunstancias personales del usuario. Cualquier decisión tomada por el usuario se realiza bajo su exclusiva responsabilidad. El titular no garantiza resultados derivados del uso de la información publicada.
+
+Riesgo de la actividad
+[Adaptar a la temática: Ej. mercados financieros conllevan riesgo de pérdida / Ej. deportes exigen prudencia física]. El usuario declara ser consciente de dichos riesgos y acepta que utiliza la información del sitio web bajo su propia responsabilidad.
+
+Publicidad, Google AdSense y enlaces de afiliados
+Este sitio web utiliza Google AdSense para mostrar publicidad. Los anuncios pueden ser personalizados en función de cookies y tecnologías similares utilizadas por Google y otros terceros publicitarios.
+El sitio web puede contener también enlaces de afiliados o contenido patrocinado, lo que puede generar una comisión al titular sin coste adicional para el usuario. El contenido publicitario o patrocinado no constituye asesoramiento independiente ni recomendación.
+
+Protección de datos personales (RGPD)
+En caso de recogida de datos personales (por ejemplo, a través de formularios de contacto o suscripción), estos serán tratados conforme al Reglamento (UE) 2016/679 (RGPD):
+- Finalidad del tratamiento: gestión de consultas y comunicaciones.
+- Base jurídica: consentimiento del interesado.
+- Conservación: únicamente durante el tiempo necesario para cumplir la finalidad indicada.
+El usuario podrá ejercer sus derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad mediante solicitud al correo electrónico: contacto@[dominio.com]
+Para más información, el usuario puede consultar la Política de Privacidad del sitio web.
+
+Política de cookies
+Este sitio web utiliza cookies propias y de terceros, incluidas cookies de Google AdSense, con fines técnicos, analíticos y publicitarios. El usuario puede aceptar, rechazar o configurar el uso de cookies mediante el panel de consentimiento habilitado al acceder al sitio web. Para más información, consulte la Política de Cookies.
+
+Propiedad intelectual e industrial
+Todos los contenidos del sitio web, incluyendo textos, artículos, diseños, logotipos y elementos gráficos, son propiedad del titular del sitio web, salvo que se indique lo contrario. Queda prohibida su reproducción, distribución o modificación sin autorización expresa del titular. En caso de utilizar contenidos de terceros, se respetarán sus respectivas licencias.
+
+Enlaces externos
+El sitio web puede incluir enlaces a páginas de terceros. El titular no se responsabiliza del contenido, exactitud o políticas de privacidad de dichos sitios externos.
+
+Limitación de responsabilidad
+El titular no será responsable de:
+- Errores u omisiones en los contenidos.
+- Falta de actualización de la información.
+- Decisiones tomadas por los usuarios basadas en la información publicada.
+- Daños o pérdidas derivados del uso del sitio web.
+El usuario utiliza el sitio web bajo su propia responsabilidad.
+
+Legislación aplicable y jurisdicción
+El presente Aviso Legal se rige por la legislación española. Para la resolución de cualquier conflicto, las partes se someten a los Juzgados y Tribunales de Córdoba, España, salvo disposición legal en materia de consumidores que establezca otra jurisdicción obligatoria.
+
+Modificaciones
+El titular se reserva el derecho de modificar el presente Aviso Legal en cualquier momento. Las modificaciones entrarán en vigor desde su publicación en el sitio web.
+```
+
+---
+
+##### 7. Términos y Condiciones
+```text
+TÉRMINOS Y CONDICIONES – [NOMBRE DE LA WEB / LUNEX FINANCES]
+Sitio web: [dominio.com / lunexfinances.com]
+Correo de contacto: contacto@[dominio.com]
+Última actualización: [Mes y Año actual, ej. abril de 2026]
+
+1. Aceptación de los términos
+El acceso y uso del sitio web [dominio.com / lunexfinances.com] implica la aceptación plena de los presentes Términos y Condiciones. Si el usuario no está de acuerdo con alguno de estos términos, debe abstenerse de utilizar el sitio web.
+
+2. Objeto del sitio web
+[Nombre de la web / Lunex Finances] es un sitio web de carácter informativo y educativo que publica contenidos relacionados con [Temática de la web]. El contenido tiene únicamente fines informativos y formativos generales.
+
+3. Uso permitido del sitio web
+El usuario se compromete a utilizar el sitio web de forma adecuada y conforme a la ley. Queda prohibido:
+- Utilizar el sitio para fines ilegales o fraudulentos.
+- Realizar copias masivas del contenido mediante sistemas automatizados (scraping).
+- Alterar o dañar el funcionamiento del sitio web.
+- Intentar acceder a zonas restringidas sin autorización.
+
+4. Propiedad intelectual
+Todos los contenidos del sitio web, incluyendo textos, artículos, diseño, logotipo y material gráfico, son propiedad del titular del sitio web o de terceros con licencia. Queda prohibida su reproducción, distribución o modificación sin autorización expresa.
+
+5. Contenido informativo y ausencia de asesoramiento
+La información publicada en este sitio web no constituye en ningún caso asesoramiento profesional directo, legal o fiscal. El contenido es de carácter general y no tiene en cuenta circunstancias personales del usuario. El usuario es el único responsable de las decisiones que tome basadas en la información del sitio web.
+
+6. Publicidad y Google AdSense
+Este sitio web utiliza Google AdSense para mostrar publicidad. Los anuncios pueden ser personalizados en función de cookies y tecnologías similares. Google y sus socios pueden utilizar datos de navegación para mostrar anuncios relevantes según sus propias políticas. El contenido publicitario es responsabilidad exclusiva de los anunciantes y no representa una recomendación del sitio web.
+
+7. Enlaces de afiliados
+Este sitio web puede incluir enlaces de afiliados. Esto significa que el titular puede recibir una comisión si el usuario realiza una acción a través de dichos enlaces, sin coste adicional para el usuario.
+
+8. Enlaces a terceros
+El sitio web puede contener enlaces a sitios web de terceros. El titular no se responsabiliza del contenido, exactitud ni políticas de privacidad de dichos sitios externos.
+
+9. Limitación de responsabilidad
+El titular no será responsable de:
+- Errores u omisiones en los contenidos.
+- Falta de actualización de la información.
+- Decisiones tomadas por los usuarios.
+- Pérdidas derivadas del uso del sitio web.
+- Problemas técnicos o interrupciones del servicio.
+El usuario utiliza el sitio web bajo su propia responsabilidad.
+
+10. Disponibilidad del sitio web
+No se garantiza la disponibilidad continua del sitio web. El titular puede modificar, suspender o eliminar el servicio en cualquier momento sin previo aviso.
+
+11. Protección de datos y cookies
+El tratamiento de datos personales y el uso de cookies se rige por la Política de Privacidad y la Política de Cookies, ambas disponibles de forma permanente en el sitio web.
+
+12. Modificaciones
+El titular se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento. Las modificaciones entrarán en vigor desde su publicación en el sitio web.
+
+13. Legislación aplicable y jurisdicción
+Estos Términos se rigen por la legislación española. Para cualquier conflicto, las partes se someten a los Juzgados y Tribunales de Córdoba, España, salvo disposición legal en materia de consumidores que indique otra jurisdicción obligatoria.
+```
+
+---
+
+#### Script de Creación y Publicación Masiva de Páginas Legales (`create_legal_pages.mjs`):
+
+```javascript
+import { authHeader, apiUrl } from './loadEnv.mjs';
+
+// ID del formulario de contacto (previamente traducido al idioma de la web)
+const formId = 9;
+
+// Array con las 7 páginas completas adaptadas en longitud y títulos
 const pages = [
   {
     title: 'Sobre Nosotros',
     slug: 'sobre-nosotros',
-    content: `<p>Bienvenido a [Nombre de la web], un portal digital independiente fundado y dirigido por Manuel López Ramos, dedicado en exclusiva al análisis riguroso, la divulgación y el estudio de [Temática de la web]...</p>`
+    content: `[Contenido completo en HTML semántico reescrito con la misma longitud que la plantilla maestra]`
   },
   {
     title: 'Manuel López Ramos',
     slug: 'manuel-lopez-ramos',
-    content: `<p>Manuel López Ramos es el fundador, editor jefe y responsable de contenidos de [Nombre de la web]. Con una dilatada trayectoria vinculada al análisis de [Temática de la web]...</p>`
+    content: `[Contenido completo en HTML semántico con la trayectoria de Manuel adaptada a la temática]`
   },
   {
     title: 'Contáctanos',
     slug: 'contactanos',
-    content: `<p>Si tienes alguna consulta, sugerencia editorial o propuesta de colaboración, puedes ponerte en contacto directamente con Manuel López Ramos y el equipo editorial:</p>[contact-form-7 id="${formId}" title="Contacto"]<p>Correo de contacto directo: contacto@[dominio.com]</p>`
+    content: `[Contenido completo con shortcode [contact-form-7 id="${formId}" title="Contacto"] y canales directos]`
   },
   {
     title: 'Política de Privacidad',
     slug: 'politica-de-privacidad',
-    content: `<p>En cumplimiento del Reglamento General de Protección de Datos (RGPD) 2016/679 y la Ley Orgánica 3/2018 (LOPDGDD), se informa que los datos personales recabados a través de este sitio son tratados bajo la responsabilidad de Manuel López Ramos (NIF: 45841212S)...</p>`
+    content: `[Contenido completo con las 14 secciones del RGPD / LOPDGDD y AdSense]`
   },
   {
     title: 'Política de Cookies',
     slug: 'politica-de-cookies',
-    content: `<p>Este sitio web utiliza cookies técnicas, analíticas (Google Analytics 4 / Site Kit) y publicitarias (Google AdSense) con la finalidad de ofrecer la mejor experiencia de navegación y contenidos personalizados...</p>`
+    content: `[Contenido completo con la clasificación técnica de cookies y Google Consent Mode v2]`
   },
   {
     title: 'Aviso Legal',
     slug: 'aviso-legal',
-    content: `<p>En cumplimiento del artículo 10 de la Ley 34/2002 (LSSI-CE), se informa que el responsable de este sitio web es Manuel López Ramos, NIF 45841212S, con domicilio en Calle Blas Infante, Córdoba, España. Correo: contacto@[dominio.com]...</p>`
+    content: `[Contenido completo con LSSI-CE, exención de responsabilidad y fuero de Córdoba, España]`
   },
   {
     title: 'Términos y Condiciones',
     slug: 'terminos-y-condiciones',
-    content: `<p>El acceso y uso de este sitio web atribuye la condición de usuario, aceptando desde dicho acceso los presentes Términos y Condiciones de Uso relativos a los contenidos sobre [Temática de la web]...</p>`
+    content: `[Contenido completo con las 13 cláusulas de uso lícito y propiedad intelectual]`
   }
 ];
 
-for (const p of pages) {
-  const res = await fetch(`${process.env.WP_API_URL}/pages`, {
-    method: 'POST',
-    headers: {
-      'Authorization': authHeader,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ ...p, status: 'publish' })
-  });
-  const data = await res.json();
-  console.log(`Página creada: ${p.title} (ID: ${data.id}, Slug: ${data.slug})`);
+// Comprobar páginas existentes y crear o actualizar por REST API
+const existingRes = await fetch(`${apiUrl}/pages?per_page=100`, { headers: { 'Authorization': authHeader } });
+const existing = await existingRes.json();
+const existingMap = new Map(existing.map(p => [p.slug, p.id]));
+
+for (const page of pages) {
+  if (existingMap.has(page.slug)) {
+    const pageId = existingMap.get(page.slug);
+    await fetch(`${apiUrl}/pages/${pageId}`, {
+      method: 'POST',
+      headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: page.title, content: page.content, status: 'publish' })
+    });
+    console.log(`Página actualizada: ${page.title} (ID: ${pageId})`);
+  } else {
+    const createRes = await fetch(`${apiUrl}/pages`, {
+      method: 'POST',
+      headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: page.title, slug: page.slug, content: page.content, status: 'publish' })
+    });
+    const data = await createRes.json();
+    console.log(`Página creada: ${page.title} (ID: ${data.id})`);
+  }
 }
+
+// 🛡️ Test de Verificación Obligatoria de Contact Form 7
+const checkRes = await fetch(`https://${process.env.WP_DOMAIN || 'golazos.co'}/contactanos/?nocache=${Date.now()}`);
+const checkHtml = await checkRes.text();
+if (checkHtml.includes('Your name') || checkHtml.includes('Submit')) {
+  throw new Error('[CRITICAL GATE] El formulario de contacto está en inglés. Debe corregirse antes de continuar.');
+}
+console.log('✅ Verificación completada: Páginas legales y formulario 100% operativos en el idioma de la web.');
 ```
+
 
 ---
 
