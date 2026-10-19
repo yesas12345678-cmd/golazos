@@ -66,7 +66,7 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
 | **13** | **Disclaimer de Autor en functions.php** | Insertar en `functions.php` del tema activo la función de disclaimer educativo al final de cada artículo con enlace a la biografía de Manuel López Ramos, adaptando el texto al idioma de la web. | ✅ Estandarizado |
 | **14** | **Creación de Categorías del Nicho** | Creación vía REST API de 4 categorías estratégicas adaptadas a la temática del sitio web para organizar los contenidos y estructurar los silos de navegación. | ✅ Estandarizado |
 | **15** | **Configuración de Menús (Header y Footer)** | Creación y asignación de menú `Header` (las 4 categorías + Contáctanos al final) en ubicación principal y menú `Footer` (las 7 páginas legales en su orden riguroso) en ubicación pie de página. | ✅ Estandarizado |
-| **16** | **Maquetación de Cabecera y Pie de Página (Kadence)** | En Personalizar: subir logotipo oficial, fijar siempre la anchura máxima del título/logotipo en 80 px en Identidad del sitio, añadir bloque HTML con descripción en 2 líneas y 20px de margen izquierdo junto al logo, y colocar la Navegación en el Pie de Página centrada sobre el Copyright. | ✅ Estandarizado |
+| **16** | **Maquetación de Cabecera y Pie de Página (Kadence)** | En Personalizar: subir logotipo oficial, fijar siempre la anchura máxima del título/logotipo en 80 px en Identidad del sitio, añadir el bloque HTML con descripción en 2 líneas y 20px de margen izquierdo **SIEMPRE en el siguiente hueco inmediatamente a la derecha del logotipo**, y colocar la Navegación en el Pie de Página centrada sobre el Copyright. | ✅ Estandarizado |
 | **17** | **Creación del Usuario Autor Oficial (Manuel López)** | Crear el usuario editorial **Manuel López** (`manuellopez`, `yesas12345678@gmail.com`, `Manuel1214$Manuel`) para asignarle la autoría de todos los artículos de la web. | ✅ Estandarizado |
 | **18** | **Generación y Publicación Masiva de Artículos** | Pipeline integral de 48 artículos (12 por categoría): 3 imágenes reales con curación semántica y filtro antislop sin repetición, redacción editorial de >2500 palabras (sin viñetas ni separadores, párrafos <150 palabras), 1 post/día retroactivo con categorías alternadas y firma de Manuel López. | ✅ Estandarizado |
 
@@ -1018,7 +1018,7 @@ frontend_inspector_first_actioned_on = ""
   - **Automatización de Navegador:** `browser_subagent` (Playwright / Chromium headless).
   - **Selectores y Controles de Kadence:**
     - Control de Anchura de Logo: `#customize-control-kadence_customizer_site_identity_logo_width input[type="number"]` $\rightarrow$ fijar en `80` (px).
-    - Elemento de Cabecera: `HTML 1` posicionado inmediatamente a la derecha del Logo en la Fila Principal (`main_row`).
+    - Elemento de Cabecera: `HTML 1` posicionado **SIEMPRE en el siguiente hueco inmediatamente a la derecha del Logotipo** en la Fila Principal (`main_row`), dentro de la sección izquierda (`site-header-section-left` / hueco contiguo), quedando visualmente pegado al logo y nunca en el centro de la pantalla.
     - Editor de Código de HTML 1: pestaña `Código` con `<p style="font-size: 12px; font-weight: bold; margin: 0; line-height: 1.3;">[Descripción corta línea 1]<br>[Descripción corta línea 2]</p>`.
     - Pestaña Diseño de HTML 1: Margen izquierdo (`margin-left`) establecido en `20px` (o inline `margin-left: 20px;`).
     - Footer Builder: Fila media con elemento `footer_navigation` centrado (menú `Footer`) y fila inferior con `copyright` centrado.
@@ -1029,7 +1029,7 @@ frontend_inspector_first_actioned_on = ""
      - Asignar el logotipo horizontal oficial generado en el Paso 3, omitiendo el recorte.
      - **Regla Estricta de Dimensión:** Establecer la anchura máxima del logotipo en **80 px** (`logo_width: 80`). Esto evita desbordamientos y garantiza que la cabecera sea ligera y compacta en móvil y escritorio.
   3. **Fila Principal de Cabecera:**
-     - Añadir el bloque **HTML 1** junto al logotipo.
+     - **Regla Estricta de Posicionamiento:** El bloque **HTML 1** debe situarse **SIEMPRE en el siguiente hueco inmediatamente a la derecha del logotipo** (en la cuadrícula del maquetador, en la casilla contigua a la derecha de *Logotipo*, nunca en el centro de la cabecera).
      - Cambiar a la pestaña de código e insertar la descripción en dos líneas con formato inline y margen izquierdo:
        ```html
        <p style="font-size: 12px; font-weight: bold; margin: 0 0 0 20px; line-height: 1.3;">[Descripción línea 1]<br>[Descripción línea 2]</p>
