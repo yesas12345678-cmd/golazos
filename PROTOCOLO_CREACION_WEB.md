@@ -10,8 +10,8 @@
 > - **Usuario Autor Oficial (Editorial):** `Manuel López` (username: `manuellopez`, contraseña: `Manuel1214$Manuel`, correo: `yesas12345678@gmail.com`). **TODOS los artículos se suben y publican bajo este usuario** para que en el frontend aparezca siempre *"Por Manuel López"*. Si se solicita código de confirmación o 2FA, se gestiona mediante la conexión activa a Composio.
 > - **Cuenta Maestra de Google (Site Kit / Search Console / Analytics):** `yesas12345678@gmail.com` (Manuel López). **SIEMPRE** se utiliza esta cuenta para iniciar sesión y vincular los servicios de Google en cualquier web.
 >
-> 🛑 **REGLA ESTRICTA DE CONSUMO DE IA (DEEPSEEK):**  
-> La API de **DeepSeek NO se utiliza bajo ninguna circunstancia** durante las fases de configuración técnica, maquetación, diseño, instalación de plugins o taxonomías. **Queda estrictamente prohibido lanzar llamadas de generación de contenido hasta que Manuel dé la orden explícita** de iniciar la redacción y publicación de artículos.
+> ⚡ **EJECUCIÓN CONTINUA DEL PASO 18 (GENERACIÓN EDITORIAL SIN ESPERA):**  
+> Una vez completados los pasos 1 al 17 de configuración técnica, maquetación, diseño y taxonomías, **el Paso 18 se inicia de forma 100% automática, autónoma y desatendida SIN pedir permiso ni confirmación intermedia al usuario**, ejecutando directamente el pipeline de redacción y publicación masiva de los 48 artículos con DeepSeek y Wikimedia Commons de principio a fin.
 
 ---
 
