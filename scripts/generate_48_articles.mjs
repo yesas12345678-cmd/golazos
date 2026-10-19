@@ -42,21 +42,30 @@ RULES:
       generationConfig: { responseMimeType: 'application/json' }
     };
 
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
 
-    if (!res.ok) {
-      console.warn(`    ⚠️ Vision API devolvió HTTP ${res.status}`);
-      return { is_real_football_photo: false, reason: `HTTP ${res.status}` };
+      if (res.status === 429) {
+        console.warn(`    ⚠️ Rate limit (429) en Vision API. Esperando 3s (intento ${attempt}/3)...`);
+        await new Promise(r => setTimeout(r, 3000 * attempt));
+        continue;
+      }
+
+      if (!res.ok) {
+        console.warn(`    ⚠️ Vision API devolvió HTTP ${res.status}`);
+        return { is_real_football_photo: false, reason: `HTTP ${res.status}` };
+      }
+
+      const data = await res.json();
+      const textPart = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!textPart) return { is_real_football_photo: false, reason: 'Respuesta vacía' };
+      return JSON.parse(textPart);
     }
-
-    const data = await res.json();
-    const textPart = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!textPart) return { is_real_football_photo: false, reason: 'Respuesta vacía' };
-    return JSON.parse(textPart);
+    return { is_real_football_photo: false, reason: 'Excedidos reintentos 429' };
   } catch (err) {
     console.warn(`    ⚠️ Error en verificación visual:`, err.message);
     return { is_real_football_photo: false, reason: err.message };

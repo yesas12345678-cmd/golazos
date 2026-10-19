@@ -1181,16 +1181,26 @@ CRITICAL RULES:
         generationConfig: { responseMimeType: 'application/json' }
       };
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
 
-      const data = await res.json();
-      const textPart = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!textPart) return { is_real_football_photo: false, reason: 'Empty response' };
-      return JSON.parse(textPart);
+        if (res.status === 429) {
+          await new Promise(r => setTimeout(r, 3000 * attempt));
+          continue;
+        }
+
+        if (!res.ok) return { is_real_football_photo: false, reason: `HTTP ${res.status}` };
+
+        const data = await res.json();
+        const textPart = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!textPart) return { is_real_football_photo: false, reason: 'Empty response' };
+        return JSON.parse(textPart);
+      }
+      return { is_real_football_photo: false, reason: 'Rate limit excedido' };
     }
     ```
     - **Criterio de Aceptación:** Si `is_real_football_photo !== true` o `is_icon_or_document_or_diagram === true`, la imagen candidata se **RECHAZA INMEDIATAMENTE**, se registra en logs y se evalúa el siguiente resultado de Wikimedia.

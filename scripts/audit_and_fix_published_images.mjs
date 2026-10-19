@@ -64,7 +64,8 @@ RULES:
 
 async function searchVerifiedWikimediaImage(queries, usedImages) {
   for (const q of queries) {
-    const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(q)}&gsrlimit=15&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1280&format=json`;
+    const fullQ = `${q} -soldier -military -army filetype:bitmap`;
+    const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(fullQ)}&gsrlimit=15&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1280&format=json`;
     try {
       const res = await fetch(endpoint, {
         headers: { 'User-Agent': 'MediaWikiBot/1.0 (contacto@golazos.co) NodeFetch' },
