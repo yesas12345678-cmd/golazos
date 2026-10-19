@@ -57,7 +57,7 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
 | **4** | **Diseño & Plantilla** | En Apariencia, instalar y activar el tema **Kadence** de forma 100% autónoma con el subagente de navegador. | ✅ Estandarizado |
 | **5** | **Limpieza de Contenido Base** | Eliminar permanentemente los contenidos de muestra preinstalados por WordPress: la entrada "Hello world!" (ID 1) y la página "Sample Page" (ID 2), junto con sus comentarios. | ✅ Estandarizado |
 | **6** | **Gestión de Plugins** | Activar Akismet Anti-spam, eliminar Hello Dolly, e instalar y activar el trío esencial: Ad Inserter, Site Kit by Google y Yoast SEO. | ✅ Estandarizado |
-| **7** | **Hacer Páginas Legales** | Redacción y publicación de las 7 páginas legales e institucionales personalizadas (Sobre Nosotros, Manuel López Ramos, Contáctanos con Contact Form 7 en el idioma de la web, Política de Privacidad, Política de Cookies, Aviso Legal y Términos y Condiciones), manteniendo datos de identidad de Manuel y adaptando temática y correos a la web. | ✅ Estandarizado |
+| **7** | **Hacer Páginas Legales** | Redacción y publicación de las 7 páginas legales e institucionales personalizadas (Sobre Nosotros, Manuel López Ramos, Contáctanos con Contact Form 7 localizado obligatoriamente al idioma oficial de la web, Política de Privacidad, Política de Cookies, Aviso Legal y Términos y Condiciones), manteniendo datos de identidad de Manuel y adaptando temática y correos a la web. | ✅ Estandarizado |
 | **8** | **Ajustes Generales** | Configurar Título del Sitio (`[Nombre de la web]`), Descripción corta (`[Descripción de 2-3 palabras]`) y subir el logo/emblema como Icono del sitio (Favicon). | ✅ Estandarizado |
 | **9** | **Ajustes de Lectura y Comentarios** | Configurar 12 entradas por página/feed, indexación activa, comentarios con aprobación manual, desactivar hilos, paginación y avatares para máxima velocidad y limpieza. | ✅ Estandarizado |
 | **10** | **Ajustes de Medios y Enlaces Permanentes** | Medios estándar (150x150 recorte, 300x300, 1024x1024, carpetas mes/año) y Enlaces permanentes en **Nombre de la entrada** (`/%postname%/`). Cierre total de ajustes de WordPress. | ✅ Estandarizado |
@@ -321,7 +321,7 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
     - `ad-inserter` $\rightarrow$ Ad Inserter (Inyección de anuncios de Google AdSense)
     - `google-site-kit` $\rightarrow$ Site Kit by Google (Search Console y GA4)
     - `wordpress-seo` $\rightarrow$ Yoast SEO (Sitemaps y metadatos)
-    - `contact-form-7` $\rightarrow$ Contact Form 7 (Formulario de soporte)
+    - `contact-form-7` $\rightarrow$ Contact Form 7 (Formulario de soporte). **ADVERTENCIA OBLIGATORIA:** Contact Form 7 se inicializa por defecto con plantillas en inglés (`Your name`, `Your email`, `Subject`, `Submit`). En el Paso 7 es **mandatorio y obligatorio** acceder a `/wp-admin/admin.php?page=wpcf7` con `browser_subagent` y traducirlo al idioma oficial de la web antes de publicar la página `/contactanos/`.
     - Purgado definitivo de `hello` (Hello Dolly)
 
 - **Script de Instalación / Activación Automática (`setup_plugins.mjs`):**
@@ -373,16 +373,129 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
 - **Domicilio Fiscal:** `Calle Blas Infante, Córdoba, España`
 - **Correos electrónicos del dominio:** `contacto@[dominio.com]`, `manuellopezramos@[dominio.com]`
 
-#### Configuración de Contact Form 7:
-1. Instalar y activar el plugin `contact-form-7`.
-2. Obtener el ID del formulario creado por defecto (o crear uno vía navegador en `/wp-admin/admin.php?page=wpcf7`) y configurar la plantilla de formulario en el idioma de la web:
-   ```html
-   <p><label> Tu nombre<br />[text* your-name autocomplete:name] </label></p>
-   <p><label> Tu correo electrónico<br />[email* your-email autocomplete:email] </label></p>
-   <p><label> Asunto<br />[text* your-subject] </label></p>
-   <p><label> Tu mensaje (opcional)<br />[textarea your-message] </label></p>
-   <p>[submit "Enviar"]</p>
-   ```
+#### 🚨 REGLA ESTRICTA DE LOCALIZACIÓN OBLIGATORIA DE CONTACT FORM 7 (PROHIBICIÓN TOTAL DE FORMULARIOS EN INGLÉS EN WEBS EN ESPAÑOL U OTROS IDIOMAS):
+
+> [!CAUTION]
+> **MOTIVO DEL ERROR RECURRENTE Y PROHIBICIÓN RADICAL:**  
+> Cuando el plugin `contact-form-7` se instala y activa, WordPress genera automáticamente un formulario inicial por defecto (*Contact form 1*) con etiquetas 100% en inglés: `<label> Your name ... </label>`, `<label> Your email ... </label>`, `<label> Subject ... </label>`, `<label> Your message (optional) ... </label>`, `[submit "Submit"]`.  
+> Si el agente se limita a incrustar el shortcode `[contact-form-7 id="..." ...]` sin modificar el formulario dentro de WordPress, **la web en español u otro idioma mostrará un formulario en inglés**, lo que destruye la credibilidad del sitio y el rigor del protocolo.  
+> **ESTÁ TOTALMENTE PROHIBIDO publicar la página `/contactanos/` (o su equivalente en el idioma de la web) sin haber editado y traducido previamente la plantilla del formulario al idioma vehicular del sitio.**
+
+##### Procedimiento Técnico de Localización con `browser_subagent`:
+Dado que la REST API de Contact Form 7 restringe la edición programática de la plantilla (`properties.form.content`) sin sesión autenticada en el panel de control, el agente **DEBE utilizar obligatoriamente `browser_subagent`** para editar y guardar el formulario:
+
+1. Abrir la URL de edición del formulario en el panel de WordPress:
+   `https://[dominio.com]/wp-admin/admin.php?page=wpcf7&post=[formId]` (típicamente ID 9 o el que figure en Contacto).
+2. Localizar el área de texto con ID `#wpcf7-form` en la pestaña **Formulario**.
+3. Reemplazar su contenido de forma íntegra por la plantilla oficial traducida al idioma del proyecto (ver plantillas a continuación).
+4. Hacer clic en el botón de guardar (`#wpcf7-save`).
+5. Esperar la confirmación en pantalla (*"Formulario de contacto guardado"*).
+
+##### Plantillas Oficiales de Formulario por Idioma:
+
+- **🇪🇸 Español (Spanish):**
+  ```html
+  <label> Tu nombre (obligatorio)
+      [text* your-name autocomplete:name] </label>
+
+  <label> Tu correo electrónico (obligatorio)
+      [email* your-email autocomplete:email] </label>
+
+  <label> Asunto
+      [text* your-subject] </label>
+
+  <label> Tu mensaje (opcional)
+      [textarea your-message] </label>
+
+  [submit "Enviar mensaje"]
+  ```
+
+- **🇫🇷 Francés (French):**
+  ```html
+  <label> Votre nom (obligatoire)
+      [text* your-name autocomplete:name] </label>
+
+  <label> Votre adresse de messagerie (obligatoire)
+      [email* your-email autocomplete:email] </label>
+
+  <label> Sujet
+      [text* your-subject] </label>
+
+  <label> Votre message (optionnel)
+      [textarea your-message] </label>
+
+  [submit "Envoyer le message"]
+  ```
+
+- **🇩🇪 Alemán (German):**
+  ```html
+  <label> Ihr Name (erforderlich)
+      [text* your-name autocomplete:name] </label>
+
+  <label> Ihre E-Mail-Adresse (erforderlich)
+      [email* your-email autocomplete:email] </label>
+
+  <label> Betreff
+      [text* your-subject] </label>
+
+  <label> Ihre Nachricht (optional)
+      [textarea your-message] </label>
+
+  [submit "Nachricht senden"]
+  ```
+
+- **🇵🇹 Portugués (Portuguese):**
+  ```html
+  <label> O seu nome (obrigatório)
+      [text* your-name autocomplete:name] </label>
+
+  <label> O seu correio eletrónico (obrigatório)
+      [email* your-email autocomplete:email] </label>
+
+  <label> Assunto
+      [text* your-subject] </label>
+
+  <label> A sua mensagem (opcional)
+      [textarea your-message] </label>
+
+  [submit "Enviar mensagem"]
+  ```
+
+- **🇬🇧 Inglés (English - solo si la web es en inglés):**
+  ```html
+  <label> Your name (required)
+      [text* your-name autocomplete:name] </label>
+
+  <label> Your email (required)
+      [email* your-email autocomplete:email] </label>
+
+  <label> Subject
+      [text* your-subject] </label>
+
+  <label> Your message (optional)
+      [textarea your-message] </label>
+
+  [submit "Send message"]
+  ```
+
+##### 🛡️ Test de Verificación Obligatoria Post-Publicación (Gate de Paso 7):
+Inmediatamente después de publicar las páginas legales, el agente **DEBE ejecutar de forma automática este test HTTP** para validar la página `/contactanos/`:
+
+```javascript
+const res = await fetch(`https://${dominio}/contactanos/?nocache=${Date.now()}`);
+const html = await res.text();
+
+// Para webs en español:
+const hasValidSpanish = html.includes('Tu nombre') && html.includes('Tu correo electrónico') && html.includes('Enviar mensaje');
+const hasForbiddenEnglish = html.includes('Your name') || html.includes('Your email') || html.includes('value="Submit"');
+
+if (!hasValidSpanish || hasForbiddenEnglish) {
+  throw new Error(`[CRITICAL GATE FAILURE] El formulario de contacto está en un idioma incorrecto (se detectaron textos en inglés). Debe corregirse en /wp-admin/admin.php?page=wpcf7 antes de avanzar al Paso 8.`);
+}
+console.log('✅ Formulario de contacto 100% verificado en el idioma oficial de la web.');
+```
+> **MANDATO DE BLOQUEO:** Si esta verificación falla, el agente tiene terminantemente prohibido avanzar al Paso 8 hasta corregir el formulario mediante `browser_subagent`.
+
 
 #### Script de Creación Masiva de Páginas Legales (`create_legal_pages.mjs`):
 ```javascript

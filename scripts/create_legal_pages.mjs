@@ -180,6 +180,18 @@ async function createPages() {
     }
   }
   console.log('✅ Todas las páginas legales e institucionales listas.');
+
+  // Verificación obligatoria de localización de Contact Form 7
+  console.log('\n--- VERIFICANDO IDIOMA DE CONTACT FORM 7 EN VIVO ---');
+  const contactRes = await fetch('https://golazos.co/contactanos/?t=' + Date.now());
+  const contactHtml = await contactRes.text();
+  const hasSpanish = contactHtml.includes('Tu nombre') && contactHtml.includes('Tu correo electrónico');
+  const hasEnglish = contactHtml.includes('Your name') || contactHtml.includes('Your email');
+
+  if (hasEnglish || !hasSpanish) {
+    throw new Error('❌ [ERROR FATAL] El formulario de contacto está en inglés. Debe configurarse en español en /wp-admin/admin.php?page=wpcf7');
+  }
+  console.log('✅ Formulario de contacto 100% verificado en español en https://golazos.co/contactanos/');
 }
 
 createPages().catch(err => {
