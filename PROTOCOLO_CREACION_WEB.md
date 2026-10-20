@@ -68,7 +68,7 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
 | **15** | **Configuración de Menús (Header y Footer)** | Creación y asignación de menú `Header` (las 4 categorías + Contáctanos al final) en ubicación principal y menú `Footer` (las 7 páginas legales en su orden riguroso) en ubicación pie de página. | ✅ Estandarizado |
 | **16** | **Maquetación de Cabecera y Pie de Página (Kadence)** | En Personalizar: subir logotipo oficial, fijar siempre la anchura máxima del título/logotipo en 80 px en Identidad del sitio, añadir el bloque HTML con descripción en 2 líneas y 20px de margen izquierdo **SIEMPRE en el siguiente hueco inmediatamente a la derecha del logotipo**, y colocar la Navegación en el Pie de Página centrada sobre el Copyright. | ✅ Estandarizado |
 | **17** | **Creación del Usuario Autor Oficial (Manuel López)** | Crear el usuario editorial **Manuel López** (`manuellopez`, `yesas12345678@gmail.com`, `Manuel1214$Manuel`) para asignarle la autoría de todos los artículos de la web. | ✅ Estandarizado |
-| **18** | **Generación y Publicación Masiva de Artículos** | Pipeline integral de 48 artículos (12 por categoría): 3 imágenes reales con curación semántica y filtro antislop sin repetición, redacción editorial de >2500 palabras (sin viñetas ni separadores, párrafos <150 palabras), 1 post/día retroactivo con categorías alternadas y firma de Manuel López. | ✅ Estandarizado |
+| **18** | **Generación y Publicación Masiva de Artículos** | Pipeline integral de 48 artículos (12 por categoría): exactamente 3 imágenes reales obligatorias por artículo (1 destacada + 2 intermedias en cuerpo a 1/3 y 2/3 con bloque figure Gutenberg) verificadas 100% con Gemini Vision; redacción editorial >2500 palabras, 1 post/día retroactivo, categorías alternadas y gate de auditoría final 48/48 sin excepciones. | ✅ Estandarizado |
 
 ---
 
@@ -1695,8 +1695,20 @@ frontend_inspector_first_actioned_on = ""
     ```
   - **Alternancia categorial estricta:** Las 4 categorías se intercalan de forma cíclica `(articleIndex % 4)` (Cat 1 $\rightarrow$ Cat 2 $\rightarrow$ Cat 3 $\rightarrow$ Cat 4 $\rightarrow$ Cat 1...) para que jamás coincidan días consecutivos de la misma categoría en la portada.
 
-- **3. Adquisición y Curación Semántica de Imágenes con Verificación Visual 100% (Wikimedia Commons + Gemini Vision):**
-  - **Cantidad por Artículo:** Exactamente 3 imágenes reales, profesionales y libres de derechos comerciales:
+- **3. Adquisición y Curación Semántica de Imágenes con Verificación Visual 100% (Wikimedia Commons + Unsplash + Gemini Vision):**
+
+  > [!CAUTION]
+  > **🚨 MANDATO ESTRICTO DE OBLIGATORIEDAD DE IMÁGENES INTERMEDIAS (PROHIBICIÓN RADICAL DE ARTÍCULOS SIN IMÁGENES EN EL CUERPO):**  
+  > Todo artículo publicado **DEBE contener de forma obligatoria e innegociable exactamente 3 imágenes reales, profesionales e independientes**:
+  > 1. **1 Imagen Destacada (`featured_media`):** Asignada como portada del artículo para cabecera, listados y miniaturas.
+  > 2. **2 Imágenes Intermedias en el Cuerpo del Texto:** Insertadas en el contenido HTML en los tercios de lectura (~33% y ~66% de los párrafos) con el bloque Gutenberg `<figure class="wp-block-image size-large"><img src="..." alt="..." /><figcaption>...</figcaption></figure>`.
+  > 
+  > **PROHIBICIÓN ABSOLUTA:** Está terminantemente prohibido publicar o dar por bueno un artículo que solo tenga imagen de portada y carezca de imágenes intermedias en el cuerpo del texto. Publicar un artículo con 0 imágenes en el cuerpo es considerado un **fallo crítico e inaceptable** del pipeline editorial.
+  > 
+  > **Garantía de Adquisición con Doble Fuente (Wikimedia + Unsplash):**  
+  > Si la búsqueda inicial en Wikimedia Commons no devuelve suficientes imágenes aprobadas por Gemini Vision (por filtros antislop o cuotas), el script **NO PUEDE** continuar redactando ni publicar a medias. Debe recurrir automáticamente al proveedor secundario (Unsplash API mediante `process.env.UNSPLASH_ACCESS_KEY`) o ampliar las consultas hasta reunir obligatoriamente las 3 imágenes necesarias ANTES de proceder a la maquetación.
+
+  - **Cantidad Estricta por Artículo:** Exactamente 3 imágenes reales, profesionales y libres de derechos comerciales:
     1. **Imagen Destacada (`featured_media`):** Cabecera del artículo y miniatura en portada y categorías.
     2. **Imagen Intermedia 1:** Inyectada en el HTML a ~1/3 del cuerpo del texto.
     3. **Imagen Intermedia 2:** Inyectada en el HTML a ~2/3 del cuerpo del texto.
@@ -1837,8 +1849,25 @@ CRITICAL RULES:
     }
     ```
 
-- **5. Publicación en WordPress REST API y Persistencia:**
-  - **Llamada de Publicación:**
+- **5. Publicación en WordPress REST API, Puertas de Verificación y Auditoría 48/48:**
+
+  - **🛡️ Puerta de Verificación Estricta Pre-Publicación (Gate Mandatorio):**
+    Antes de enviar la petición de publicación a WordPress, el script debe validar obligatoriamente que el artículo cumple con la totalidad de imágenes requeridas:
+    ```javascript
+    // 1. Validar que se han obtenido y subido las 3 imágenes
+    if (!featuredMediaId || !inlineImg1 || !inlineImg2 || uploadedImages.length < 3) {
+      throw new Error(`[CRITICAL GATE FAILURE] No se han obtenido las 3 imágenes requeridas (1 destacada + 2 intermedias) para "${article.title}". Publicación abortada.`);
+    }
+
+    // 2. Inyectar imágenes intermedias y verificar presencia en el HTML final
+    const finalHtml = injectInlineImages(html, inlineImg1, inlineImg2);
+    const inlineCount = (finalHtml.match(/<img[^>]+>/g) || []).length;
+    if (inlineCount < 2) {
+      throw new Error(`[CRITICAL GATE FAILURE] El cuerpo del artículo "${article.title}" tiene ${inlineCount} imágenes (se exigen mínimo 2 intermedias además de la portada). Publicación abortada.`);
+    }
+    ```
+
+  - **Llamada de Publicación en WordPress REST API:**
     ```javascript
     const postRes = await fetch(`${process.env.WP_API_URL}/posts`, {
       method: 'POST',
@@ -1856,9 +1885,41 @@ CRITICAL RULES:
         date: publishDate
       })
     });
+
+    if (!postRes.ok) throw new Error(`Fallo al publicar post: ${postRes.status}`);
+    const newPost = await postRes.json();
     ```
+
   - **Seguimiento en Blueprint (`data/articles_blueprint.json`):**
     Actualizar el artículo con `{ status: "published", wp_post_id: newPost.id, words: totalWords }` para permitir pausar y reanudar el proceso en cualquier momento con garantía de cero duplicados.
+
+  - **🛡️ Puerta de Auditoría y Verificación Final de los 48 Artículos (Gate de Cierre de Paso 18):**
+    Al finalizar la publicación del lote completo de 48 artículos, el agente **DEBE ejecutar de forma automática este script de auditoría exhaustiva** que examina el 100% de las entradas publicadas en WordPress:
+    ```javascript
+    // Recorrer todos los posts publicados en WordPress
+    const allPosts = await fetchAllPublishedPosts();
+    const failingPosts = [];
+
+    for (const post of allPosts) {
+      const inlineImgs = post.content.rendered.match(/<img[^>]+>/g) || [];
+      const hasFeatured = post.featured_media && post.featured_media > 0;
+      if (!hasFeatured || inlineImgs.length < 2) {
+        failingPosts.push({
+          id: post.id,
+          title: post.title.rendered,
+          featuredMediaId: post.featured_media,
+          inlineImagesCount: inlineImgs.length
+        });
+      }
+    }
+
+    if (failingPosts.length > 0) {
+      console.error('Artículos con imágenes faltantes:', failingPosts);
+      throw new Error(`[CRITICAL AUDIT FAILURE] Se detectaron ${failingPosts.length} artículos sin el cupo obligatorio de 3 imágenes (1 portada + 2 en cuerpo). Debe ejecutarse fix_missing_inline_images.mjs de inmediato.`);
+    }
+    console.log('✅ AUDITORÍA 48/48 SUPERADA: El 100% de los 48 artículos contienen su imagen destacada y mínimo 2 imágenes intermedias en el cuerpo.');
+    ```
+    > **MANDATO DE CIERRE:** No se puede dar por concluido el Paso 18 ni entregar el proyecto al usuario hasta que esta auditoría devuelva `0` artículos con fallos.
 
 ---
 

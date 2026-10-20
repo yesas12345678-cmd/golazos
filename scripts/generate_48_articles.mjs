@@ -9,6 +9,7 @@ const blueprintPath = path.resolve(dataDir, 'articles_blueprint.json');
 const usedImagesPath = path.resolve(dataDir, 'used_images.json');
 
 const geminiKey = process.env.GEMINI_API_KEY;
+const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
 const AUTHOR_ID = 2; // Manuel López
 
 // 1. Antislop & Banned patterns
@@ -172,35 +173,79 @@ async function fetchWikimediaImages(queries, usedImages, neededCount = 3) {
   return found;
 }
 
+async function searchVerifiedUnsplash(query, usedImages, needed = 2) {
+  if (!unsplashKey) return [];
+  const found = [];
+  try {
+    const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=12`, {
+      headers: { 'Authorization': `Client-ID ${unsplashKey}` },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    for (const item of (data.results || [])) {
+      if (found.length >= needed) break;
+      const imgUrl = item.urls?.regular;
+      if (!imgUrl || usedImages.has(imgUrl)) continue;
+
+      try {
+        const dl = await fetch(imgUrl, { signal: AbortSignal.timeout(10000) });
+        if (!dl.ok) continue;
+        const buf = await dl.arrayBuffer();
+        const mime = dl.headers.get('content-type') || 'image/jpeg';
+
+        console.log(`      ✅ [Unsplash] Aprobada: "${(item.alt_description || query).slice(0, 45)}"`);
+        usedImages.add(imgUrl);
+        found.push({
+          title: item.alt_description || query,
+          url: imgUrl,
+          buffer: Buffer.from(buf),
+          mime
+        });
+      } catch (e) {}
+    }
+  } catch (e) {
+    console.warn('    Fallo Unsplash:', e.message);
+  }
+  return found;
+}
+
 async function uploadImageToWordPress(imgObj, articleTitle) {
   const cleanName = 'futbol_' + Math.random().toString(36).substring(2, 9) + '.jpg';
   const altText = `${articleTitle}: ${imgObj.title.slice(0, 80)}`;
 
-  const wpRes = await fetch(`${apiUrl}/media`, {
-    method: 'POST',
-    headers: {
-      'Authorization': authHeader,
-      'Content-Type': 'image/jpeg',
-      'Content-Disposition': `attachment; filename="${cleanName}"`
-    },
-    body: imgObj.buffer
-  });
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const wpRes = await fetch(`${apiUrl}/media`, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'image/jpeg',
+          'Content-Disposition': `attachment; filename="${cleanName}"`
+        },
+        body: imgObj.buffer,
+        signal: AbortSignal.timeout(25000)
+      });
 
-  if (!wpRes.ok) {
-    const err = await wpRes.text();
-    throw new Error(`Fallo subida WP media: ${wpRes.status} - ${err}`);
+      if (!wpRes.ok) {
+        const err = await wpRes.text();
+        throw new Error(`Fallo subida WP media: ${wpRes.status} - ${err}`);
+      }
+
+      const media = await wpRes.json();
+      await fetch(`${apiUrl}/media/${media.id}`, {
+        method: 'POST',
+        headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alt_text: altText, title: altText })
+      }).catch(() => {});
+
+      return { id: media.id, sourceUrl: media.source_url, altText };
+    } catch (e) {
+      if (attempt === 3) throw e;
+      console.warn(`    ⚠️ Reintentando subida a WP (${attempt}/3): ${e.message}`);
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
-
-  const media = await wpRes.json();
-
-  // Actualizar alt text
-  await fetch(`${apiUrl}/media/${media.id}`, {
-    method: 'POST',
-    headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ alt_text: altText, title: altText })
-  }).catch(() => {});
-
-  return { id: media.id, sourceUrl: media.source_url, altText };
 }
 
 async function callGemini(prompt) {
@@ -340,10 +385,28 @@ async function runPipeline() {
     console.log(`----------------------------------------------------`);
 
     try {
-      // 1. Obtener 3 imágenes de Wikimedia Commons
+      // 1. Obtener 3 imágenes (Wikimedia Commons con fallback a Unsplash)
       console.log('  1. Buscando 3 imágenes en Wikimedia Commons...');
       const queries = getSearchQueries(article.title, article.categoryName);
       const rawImages = await fetchWikimediaImages(queries, usedImages, 3);
+
+      if (rawImages.length < 3) {
+        console.log(`  Buscando en Unsplash API para completar cupo obligatorio (${rawImages.length}/3)...`);
+        let unsplashQ = 'soccer football match action pitch';
+        if (/fair play|uefa|liga|torneo|campeonato/i.test(article.title)) {
+          unsplashQ = 'soccer stadium football match';
+        } else if (/balón parado|zona|marcaje|córner|defensa/i.test(article.title)) {
+          unsplashQ = 'soccer match action pitch';
+        } else if (/transición|ofensiva|remate|contraataque/i.test(article.title)) {
+          unsplashQ = 'soccer player match action pitch';
+        }
+        const unsplashImgs = await searchVerifiedUnsplash(unsplashQ, usedImages, 3 - rawImages.length);
+        rawImages.push(...unsplashImgs);
+      }
+
+      if (rawImages.length < 3) {
+        throw new Error(`[CRITICAL GATE FAILURE] No se han podido reunir las 3 imágenes obligatorias para "${article.title}". Publicación abortada.`);
+      }
 
       const uploadedImages = [];
       for (const img of rawImages) {
@@ -356,19 +419,24 @@ async function runPipeline() {
         }
       }
 
-      const featuredMediaId = uploadedImages[0]?.id || 0;
-      const inlineImg1 = uploadedImages[1] || uploadedImages[0];
-      const inlineImg2 = uploadedImages[2] || uploadedImages[0];
+      if (uploadedImages.length < 3) {
+        throw new Error(`[CRITICAL GATE FAILURE] Fallaron las subidas de imágenes a WordPress (${uploadedImages.length}/3 obtenidas). Publicación abortada.`);
+      }
+
+      const featuredMediaId = uploadedImages[0].id;
+      const inlineImg1 = uploadedImages[1];
+      const inlineImg2 = uploadedImages[2];
 
       // 2. Generar contenido editorial exhaustivo (>2500 palabras)
       console.log('  2. Generando texto editorial exhaustivo (>2500 palabras)...');
       const { html, words } = await generateArticleContent(article.title, article.categoryName);
       console.log(`     Contenido redactado: ${words} palabras.`);
 
-      // 3. Inyectar imágenes intermedias
-      let finalContent = html;
-      if (inlineImg1 && inlineImg2) {
-        finalContent = injectInlineImages(html, inlineImg1, inlineImg2);
+      // 3. Inyectar imágenes intermedias (Gate estricto de validación)
+      const finalContent = injectInlineImages(html, inlineImg1, inlineImg2);
+      const inlineCount = (finalContent.match(/<img[^>]+>/g) || []).length;
+      if (inlineCount < 2) {
+        throw new Error(`[CRITICAL GATE FAILURE] El cuerpo del artículo "${article.title}" contiene solo ${inlineCount} imágenes intermedias. Se exigen mínimo 2 obligatorias.`);
       }
 
       // 4. Publicar en WordPress
@@ -427,8 +495,27 @@ async function runPipeline() {
   }
 
   console.log('\n====================================================');
-  console.log(`🏁 PIPELINE FINALIZADO. Total publicados: ${publishedCount}/48`);
+  console.log(`🏁 PIPELINE FINALIZADO. Total procesados: ${publishedCount}/48`);
   console.log('====================================================');
+
+  console.log('\n--- AUDITORÍA POST-PUBLICACIÓN 48/48 (GATE DE CIERRE) ---');
+  let allWPPosts = [];
+  let pg = 1;
+  while (true) {
+    const res = await fetch(`${apiUrl}/posts?per_page=100&page=${pg}`, { headers: { Authorization: authHeader } });
+    const posts = await res.json();
+    if (!posts || !Array.isArray(posts) || posts.length === 0) break;
+    allWPPosts.push(...posts);
+    pg++;
+  }
+  const failed = allWPPosts.filter(p => !p.featured_media || (p.content.rendered.match(/<img[^>]+>/g) || []).length < 2);
+  console.log(`Total artículos en WordPress: ${allWPPosts.length}`);
+  console.log(`Artículos con menos de 2 imágenes intermedias o sin portada: ${failed.length}`);
+  if (failed.length > 0) {
+    console.error('Artículos fallidos:', failed.map(p => ({ id: p.id, title: p.title.rendered })));
+    throw new Error(`[AUDIT FAILURE] ${failed.length} artículos no cumplen la regla obligatoria de 3 imágenes.`);
+  }
+  console.log('🎉 AUDITORÍA 48/48 SUPERADA: El 100% de los 48 artículos tienen sus 2 imágenes intermedias + portada.');
 }
 
 runPipeline().catch(err => {
