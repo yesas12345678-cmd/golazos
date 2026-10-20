@@ -356,6 +356,139 @@ function injectInlineImages(html, img1, img2) {
   return paragraphs.join('</p>');
 }
 
+function getExternalLinkForArticle(title, categoryName) {
+  const t = title.toLowerCase();
+
+  if (categoryName === 'Reglamento y Arbitraje') {
+    if (/ifab|regla|reglamento|tiempo añadido|penalti|mano|fuera de juego|falta/i.test(t)) {
+      return {
+        url: 'https://www.theifab.com/es/',
+        anchor: 'la International Football Association Board (IFAB)'
+      };
+    }
+    return {
+      url: 'https://www.fifa.com/es/technical/refereeing',
+      anchor: 'el Comité de Árbitros de la FIFA'
+    };
+  }
+
+  if (categoryName === 'Grandes Torneos') {
+    if (/libertadores/i.test(t)) {
+      return {
+        url: 'https://www.conmebol.com/',
+        anchor: 'la Confederación Sudamericana de Fútbol (CONMEBOL)'
+      };
+    }
+    if (/champions|suizo|fair play|remontadas/i.test(t)) {
+      return {
+        url: 'https://es.uefa.com/',
+        anchor: 'la Unión de Federaciones Europeas de Fútbol (UEFA)'
+      };
+    }
+    if (/balón de oro|balon de oro/i.test(t)) {
+      return {
+        url: 'https://es.uefa.com/ballondor/',
+        anchor: 'la organización oficial del Ballon d\'Or'
+      };
+    }
+    return {
+      url: 'https://www.fifa.com/es',
+      anchor: 'la Federación Internacional de Fútbol Asociación (FIFA)'
+    };
+  }
+
+  if (categoryName === 'Táctica y Estrategia') {
+    if (/xg|goles esperados|métrica|datos/i.test(t)) {
+      return {
+        url: 'https://www.laliga.com/',
+        anchor: 'las métricas y estadísticas oficiales de LaLiga'
+      };
+    }
+    return {
+      url: 'https://www.fifatrainingcentre.com/es/',
+      anchor: 'el Centro de Formación e Innovación Táctica de la FIFA (FIFA Training Centre)'
+    };
+  }
+
+  if (/isquiotibiales|ligamento|lesion|lesiones|readaptaci/i.test(t)) {
+    return {
+      url: 'https://www.fifa.com/es/technical/medical',
+      anchor: 'la Red Médica y de Prevención de Lesiones de la FIFA (FIFA Medical Network)'
+    };
+  }
+  if (/nutrici|hidrataci|sueno|sueño|descanso|ansiedad|psicol/i.test(t)) {
+    return {
+      url: 'https://olympics.com/es/',
+      anchor: 'los estándares de ciencias del deporte del Comité Olímpico Internacional'
+    };
+  }
+  return {
+    url: 'https://www.fifatrainingcentre.com/es/',
+    anchor: 'los programas de rendimiento físico de la FIFA'
+  };
+}
+
+function getInternalLinksForArticle(currentArticle, allArticles) {
+  const currentIndex = currentArticle.index - 1;
+  const currentCat = currentArticle.categoryName;
+
+  const sameCatArticles = allArticles.filter(a => a.categoryName === currentCat && a.index !== currentArticle.index);
+  const target1 = sameCatArticles[(currentIndex * 3) % sameCatArticles.length];
+
+  let complementCat = '';
+  if (currentCat === 'Grandes Torneos') complementCat = 'Táctica y Estrategia';
+  else if (currentCat === 'Táctica y Estrategia') complementCat = 'Entrenamiento y Rendimiento';
+  else if (currentCat === 'Entrenamiento y Rendimiento') complementCat = 'Reglamento y Arbitraje';
+  else complementCat = 'Grandes Torneos';
+
+  const complementArticles = allArticles.filter(a => a.categoryName === complementCat && a.index !== currentArticle.index);
+  const target2 = complementArticles[(currentIndex * 5) % complementArticles.length];
+
+  function cleanAnchor(title) {
+    return title
+      .replace(/^Cómo\s+/i, 'cómo ')
+      .replace(/^Qué\s+/i, 'qué ')
+      .replace(/^Por Qué\s+/i, 'por qué ')
+      .replace(/^Las Claves de\s+/i, 'las claves de ')
+      .replace(/^Guía Completa del\s+/i, 'el ')
+      .trim();
+  }
+
+  return [
+    {
+      url: target1.link,
+      anchor: cleanAnchor(target1.title)
+    },
+    {
+      url: target2.link,
+      anchor: cleanAnchor(target2.title)
+    }
+  ];
+}
+
+function injectLinksIntoHtml(html, extLink, intLink1, intLink2) {
+  let cleaned = html.replace(/<a\s+[^>]*href=["'][^"']+["'][^>]*>(.*?)<\/a>/gi, '$1');
+  const pParts = cleaned.split('</p>');
+  const totalP = pParts.length - 1;
+
+  if (totalP < 6) return cleaned;
+
+  const idxExt = Math.max(2, Math.floor(totalP * 0.22));
+  const idxInt1 = Math.floor(totalP * 0.52);
+  const idxInt2 = Math.min(totalP - 2, Math.floor(totalP * 0.82));
+
+  const extHtml = `<a href="${extLink.url}" target="_blank" rel="noopener noreferrer external">${extLink.anchor}</a>`;
+  pParts[idxExt] = pParts[idxExt].trim() + ` En este contexto, resulta fundamental remitirse a los marcos y directrices oficiales dictados por ${extHtml}.`;
+
+  const int1Html = `<a href="${intLink1.url}">${intLink1.anchor}</a>`;
+  pParts[idxInt1] = pParts[idxInt1].trim() + ` Este principio se vincula de manera directa con los conceptos y fundamentos que desarrollamos al analizar ${int1Html}.`;
+
+  const int2Html = `<a href="${intLink2.url}">${intLink2.anchor}</a>`;
+  pParts[idxInt2] = pParts[idxInt2].trim() + ` Para complementar esta perspectiva y profundizar en su aplicación práctica, te recomendamos consultar nuestro estudio detallado sobre ${int2Html}.`;
+
+  return pParts.join('</p>');
+}
+
 async function runPipeline() {
   console.log('====================================================');
   console.log('🚀 INICIANDO PIPELINE DE 48 ARTÍCULOS - GOLAZOS.CO');
@@ -433,10 +566,23 @@ async function runPipeline() {
       console.log(`     Contenido redactado: ${words} palabras.`);
 
       // 3. Inyectar imágenes intermedias (Gate estricto de validación)
-      const finalContent = injectInlineImages(html, inlineImg1, inlineImg2);
-      const inlineCount = (finalContent.match(/<img[^>]+>/g) || []).length;
+      const htmlWithImages = injectInlineImages(html, inlineImg1, inlineImg2);
+      const inlineCount = (htmlWithImages.match(/<img[^>]+>/g) || []).length;
       if (inlineCount < 2) {
         throw new Error(`[CRITICAL GATE FAILURE] El cuerpo del artículo "${article.title}" contiene solo ${inlineCount} imágenes intermedias. Se exigen mínimo 2 obligatorias.`);
+      }
+
+      // 4. Inyectar enlaces internos y externos (~3 enlaces, siempre con hipervínculo)
+      console.log('  3. Inyectando enlaces internos y externos...');
+      const extLink = getExternalLinkForArticle(article.title, article.categoryName);
+      const [intLink1, intLink2] = getInternalLinksForArticle(article, blueprint);
+      const finalContent = injectLinksIntoHtml(htmlWithImages, extLink, intLink1, intLink2);
+
+      const linksFound = finalContent.match(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi) || [];
+      const internalFound = linksFound.filter(l => l.includes('golazos.co'));
+      const externalFound = linksFound.filter(l => !l.includes('golazos.co'));
+      if (linksFound.length !== 3 || internalFound.length !== 2 || externalFound.length !== 1) {
+        throw new Error(`[CRITICAL GATE FAILURE] El artículo "${article.title}" no contiene exactamente los 3 enlaces requeridos (2 internos + 1 externo). Encontrados: ${linksFound.length}.`);
       }
 
       // 4. Publicar en WordPress
@@ -508,14 +654,37 @@ async function runPipeline() {
     allWPPosts.push(...posts);
     pg++;
   }
-  const failed = allWPPosts.filter(p => !p.featured_media || (p.content.rendered.match(/<img[^>]+>/g) || []).length < 2);
-  console.log(`Total artículos en WordPress: ${allWPPosts.length}`);
-  console.log(`Artículos con menos de 2 imágenes intermedias o sin portada: ${failed.length}`);
-  if (failed.length > 0) {
-    console.error('Artículos fallidos:', failed.map(p => ({ id: p.id, title: p.title.rendered })));
-    throw new Error(`[AUDIT FAILURE] ${failed.length} artículos no cumplen la regla obligatoria de 3 imágenes.`);
+  const failingPosts = [];
+  for (const post of allWPPosts) {
+    const inlineImgs = post.content.rendered.match(/<img[^>]+>/g) || [];
+    const hasFeatured = post.featured_media && post.featured_media > 0;
+    const links = post.content.rendered.match(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi) || [];
+    const intLinks = links.filter(l => l.includes('golazos.co')).length;
+    const extLinks = links.filter(l => !l.includes('golazos.co')).length;
+
+    const imgOk = hasFeatured && inlineImgs.length >= 2;
+    const linksOk = links.length === 3 && intLinks === 2 && extLinks === 1;
+
+    if (!imgOk || !linksOk) {
+      failingPosts.push({
+        id: post.id,
+        title: post.title.rendered,
+        hasFeatured,
+        inlineImgs: inlineImgs.length,
+        links: links.length,
+        intLinks,
+        extLinks
+      });
+    }
   }
-  console.log('🎉 AUDITORÍA 48/48 SUPERADA: El 100% de los 48 artículos tienen sus 2 imágenes intermedias + portada.');
+
+  console.log(`Total artículos en WordPress: ${allWPPosts.length}`);
+  console.log(`Artículos con incidencias de imágenes o enlaces: ${failingPosts.length}`);
+  if (failingPosts.length > 0) {
+    console.error('Artículos fallidos:', failingPosts);
+    throw new Error(`[AUDIT FAILURE] ${failingPosts.length} artículos no cumplen las reglas de 3 imágenes o 3 enlaces.`);
+  }
+  console.log('🎉 AUDITORÍA 48/48 SUPERADA: El 100% de los 48 artículos tienen sus 3 imágenes (1 portada + 2 intermedias) y 3 enlaces (2 internos + 1 externo) SIEMPRE con hipervínculo HTML.');
 }
 
 runPipeline().catch(err => {

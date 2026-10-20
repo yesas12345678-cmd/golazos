@@ -41,6 +41,7 @@ Este protocolo está diseñado para operar con un conjunto estandarizado de herr
 | **Medidor y Expansor Editorial** | **Algoritmo `cleanWordCount` Loop** | Conteo de tokens/palabras en memoria | Medición en tiempo real del cuerpo del artículo sin tags HTML y llamada expansiva hasta superar 2.500 palabras. |
 | **Adquisición de Imágenes (Principal)** | **Wikimedia Commons API** | `https://commons.wikimedia.org/w/api.php` (`action=query&generator=search&iiurlwidth=1280`) | Banco masivo de fotografías de eventos reales y licencias comerciales libres (Creative Commons / Dominio Público) sin cuotas por hora. |
 | **Adquisición de Imágenes (Secundaria)** | **Unsplash API** | `https://api.unsplash.com/search/photos` (`orientation=landscape`) | Repositorio de fotografía artística y ambiental libre de derechos comerciales. |
+| **Estrategia de Enlazado (SEO Silo y Autoridad)** | **Hipervínculos HTML Contextuales (~3 Enlaces/Post)** | Inyección en código de 2 enlaces internos (arquitectura de silos) + 1 enlace externo hacia organismos oficiales (FIFA, UEFA, IFAB, etc.) con atributos `target="_blank" rel="noopener noreferrer external"`. SIEMPRE con hipervínculo HTML. |
 | **Generación Gráfica de Branding** | **Nano Banana / Imagen Multimodal** | Herramienta `generate_image` | Creación de logotipo horizontal y favicon en PNG con canal alfa (fondo transparente). |
 | **Notificaciones Instantáneas** | **Telegram Bot API** | `https://api.telegram.org/bot<TOKEN>/sendMessage` | Envío inmediato a Manuel López (`@JudeeeeeBot`, chat ID `7777389793`) del dominio a comprar tras la consultoría SEO. |
 | **Telefonía y Voz (Modo Fuera)** | **Bland AI API** | `https://api.bland.ai/v1/calls` | Realización de llamadas telefónicas salientes interactivas cuando el Modo Fuera de Casa está activado. |
@@ -1852,7 +1853,7 @@ CRITICAL RULES:
 - **5. Publicación en WordPress REST API, Puertas de Verificación y Auditoría 48/48:**
 
   - **🛡️ Puerta de Verificación Estricta Pre-Publicación (Gate Mandatorio):**
-    Antes de enviar la petición de publicación a WordPress, el script debe validar obligatoriamente que el artículo cumple con la totalidad de imágenes requeridas:
+    Antes de enviar la petición de publicación a WordPress, el script debe validar obligatoriamente que el artículo cumple con la totalidad de imágenes y enlaces requeridos:
     ```javascript
     // 1. Validar que se han obtenido y subido las 3 imágenes
     if (!featuredMediaId || !inlineImg1 || !inlineImg2 || uploadedImages.length < 3) {
@@ -1860,10 +1861,19 @@ CRITICAL RULES:
     }
 
     // 2. Inyectar imágenes intermedias y verificar presencia en el HTML final
-    const finalHtml = injectInlineImages(html, inlineImg1, inlineImg2);
-    const inlineCount = (finalHtml.match(/<img[^>]+>/g) || []).length;
+    const htmlWithImages = injectInlineImages(html, inlineImg1, inlineImg2);
+    const inlineCount = (htmlWithImages.match(/<img[^>]+>/g) || []).length;
     if (inlineCount < 2) {
       throw new Error(`[CRITICAL GATE FAILURE] El cuerpo del artículo "${article.title}" tiene ${inlineCount} imágenes (se exigen mínimo 2 intermedias además de la portada). Publicación abortada.`);
+    }
+
+    // 3. Inyectar enlaces internos y externos y validar hipervínculos HTML
+    const finalHtml = injectLinksIntoHtml(htmlWithImages, extLink, intLink1, intLink2);
+    const linksFound = finalHtml.match(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi) || [];
+    const internalFound = linksFound.filter(l => l.includes(domainName));
+    const externalFound = linksFound.filter(l => !l.includes(domainName));
+    if (linksFound.length !== 3 || internalFound.length !== 2 || externalFound.length !== 1) {
+      throw new Error(`[CRITICAL GATE FAILURE] El artículo "${article.title}" no cumple con el cupo de 3 enlaces con hipervínculo (2 internos + 1 externo). Total: ${linksFound.length}. Publicación abortada.`);
     }
     ```
 
@@ -1894,7 +1904,7 @@ CRITICAL RULES:
     Actualizar el artículo con `{ status: "published", wp_post_id: newPost.id, words: totalWords }` para permitir pausar y reanudar el proceso en cualquier momento con garantía de cero duplicados.
 
   - **🛡️ Puerta de Auditoría y Verificación Final de los 48 Artículos (Gate de Cierre de Paso 18):**
-    Al finalizar la publicación del lote completo de 48 artículos, el agente **DEBE ejecutar de forma automática este script de auditoría exhaustiva** que examina el 100% de las entradas publicadas en WordPress:
+    Al finalizar la publicación del lote completo de 48 artículos, el agente **DEBE ejecutar de forma automática este script de auditoría exhaustiva** que examina el 100% de las entradas publicadas en WordPress (tanto imágenes como enlaces):
     ```javascript
     // Recorrer todos los posts publicados en WordPress
     const allPosts = await fetchAllPublishedPosts();
@@ -1903,23 +1913,79 @@ CRITICAL RULES:
     for (const post of allPosts) {
       const inlineImgs = post.content.rendered.match(/<img[^>]+>/g) || [];
       const hasFeatured = post.featured_media && post.featured_media > 0;
-      if (!hasFeatured || inlineImgs.length < 2) {
+      const links = post.content.rendered.match(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi) || [];
+      const intLinks = links.filter(l => l.includes(domainName)).length;
+      const extLinks = links.filter(l => !l.includes(domainName)).length;
+
+      const imgOk = hasFeatured && inlineImgs.length >= 2;
+      const linksOk = links.length === 3 && intLinks === 2 && extLinks === 1;
+
+      if (!imgOk || !linksOk) {
         failingPosts.push({
           id: post.id,
           title: post.title.rendered,
           featuredMediaId: post.featured_media,
-          inlineImagesCount: inlineImgs.length
+          inlineImagesCount: inlineImgs.length,
+          totalLinks: links.length,
+          internalLinks: intLinks,
+          externalLinks: extLinks
         });
       }
     }
 
     if (failingPosts.length > 0) {
-      console.error('Artículos con imágenes faltantes:', failingPosts);
-      throw new Error(`[CRITICAL AUDIT FAILURE] Se detectaron ${failingPosts.length} artículos sin el cupo obligatorio de 3 imágenes (1 portada + 2 en cuerpo). Debe ejecutarse fix_missing_inline_images.mjs de inmediato.`);
+      console.error('Artículos con imágenes o enlaces incompletos:', failingPosts);
+      throw new Error(`[CRITICAL AUDIT FAILURE] Se detectaron ${failingPosts.length} artículos sin el cupo obligatorio de 3 imágenes o 3 enlaces (2 internos + 1 externo). Debe corregirse de inmediato.`);
     }
-    console.log('✅ AUDITORÍA 48/48 SUPERADA: El 100% de los 48 artículos contienen su imagen destacada y mínimo 2 imágenes intermedias en el cuerpo.');
+    console.log('✅ AUDITORÍA 48/48 SUPERADA: El 100% de los 48 artículos contienen su imagen destacada, 2 imágenes intermedias y 3 enlaces (2 internos + 1 externo) SIEMPRE con hipervínculo HTML.');
     ```
     > **MANDATO DE CIERRE:** No se puede dar por concluido el Paso 18 ni entregar el proyecto al usuario hasta que esta auditoría devuelva `0` artículos con fallos.
+
+- **6. Regla Obligatoria de Enlazado Interno y Externo (~3 Enlaces con Hipervínculo por Artículo):**
+
+  > [!IMPORTANT]
+  > **🚨 MANDATO ESTRICTO DE ENLAZADO OBLIGATORIO (SIEMPRE CON HIPERVÍNCULO HTML):**  
+  > Todo artículo publicado **DEBE contener de forma obligatoria e innegociable aproximadamente 3 enlaces (2 internos + 1 externo)** perfectamente integrados en la narrativa del texto:
+  > 1. **2 Enlaces Internos (Arquitectura de Silo y Retención):**
+  >    - Un enlace hacia otro artículo de la misma categoría temática (silo temático directo).
+  >    - Un enlace hacia un artículo de una categoría complementaria (enlace transversal estructurado).
+  >    - Texto de ancla (*anchor text*) 100% natural, descriptivo y contextualmente integrado (prohibido usar "haz clic aquí" o enlaces genéricos).
+  > 2. **1 Enlace Externo (Máxima Autoridad Oficial):**
+  >    - Dirigido a entidades reguladoras, federaciones o fuentes oficiales de máxima reputación del sector (FIFA, UEFA, IFAB, CONMEBOL, LaLiga, etc.).
+  >    - Atributos obligatorios: `target="_blank" rel="noopener noreferrer external"`.
+  > 3. **PROHIBICIÓN ABSOLUTA DE ENLACES EN TEXTO PLANO O SIN HIPERVÍNCULO:**
+  >    - Está terminantemente prohibido dejar URLs desnudas en texto plano (ej. `https://theifab.com`).
+  >    - **TODO ENLACE DEBE SER UN HIPERVÍNCULO HTML NATIVO (`<a href="..." ...>anchor</a>`)** que permita al usuario hacer clic de forma inmediata.
+  > 
+  > **Distribución Equilibrada en el Texto (>2.500 palabras):**
+  > - **Enlace Externo de Autoridad:** Inyectado en el primer tercio del artículo (~párrafo 4) al fundamentar el marco normativo o institucional.
+  > - **Enlace Interno 1:** Inyectado en el tercio medio (~párrafo 11) para profundizar en conceptos técnicos afines.
+  > - **Enlace Interno 2:** Inyectado en el tercio final (~párrafo 19) para conectar con guías prácticas complementarias.
+  >
+  > **Implementación en Código (`injectLinksIntoHtml`):**
+  > ```javascript
+  > function injectLinksIntoHtml(html, extLink, intLink1, intLink2) {
+  >   const pParts = html.split('</p>');
+  >   const totalP = pParts.length - 1;
+  >   const idxExt = Math.max(2, Math.floor(totalP * 0.22));
+  >   const idxInt1 = Math.floor(totalP * 0.52);
+  >   const idxInt2 = Math.min(totalP - 2, Math.floor(totalP * 0.82));
+  >
+  >   // Enlace externo (target blank y rel noopener external)
+  >   const extHtml = `<a href="${extLink.url}" target="_blank" rel="noopener noreferrer external">${extLink.anchor}</a>`;
+  >   pParts[idxExt] += ` En este contexto, resulta fundamental remitirse a los marcos y directrices oficiales dictados por ${extHtml}.`;
+  >
+  >   // Enlace interno 1 (mismo silo)
+  >   const int1Html = `<a href="${intLink1.url}">${intLink1.anchor}</a>`;
+  >   pParts[idxInt1] += ` Este principio se vincula de manera directa con los conceptos y fundamentos que desarrollamos al analizar ${int1Html}.`;
+  >
+  >   // Enlace interno 2 (silo complementario)
+  >   const int2Html = `<a href="${intLink2.url}">${intLink2.anchor}</a>`;
+  >   pParts[idxInt2] += ` Para complementar esta perspectiva y profundizar en su aplicación práctica, te recomendamos consultar nuestro estudio detallado sobre ${int2Html}.`;
+  >
+  >   return pParts.join('</p>');
+  > }
+  > ```
 
 ---
 
